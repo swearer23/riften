@@ -22,11 +22,11 @@ def cli_set_mode():
   return int(choice)
 
 intervals = [
-  '1s',
-  '3s',
-  '5s',
-  '15s',
-  '30s',
+  # '1s',
+  # '3s',
+  # '5s',
+  # '15s',
+  # '30s',
   '1m',
   '3m',
   '5m',
@@ -39,9 +39,9 @@ intervals = [
   '8h',
   '12h',
   '1d',
-  '3d',
-  '1w',
-  '1M',
+  # '3d',
+  # '1w',
+  # '1M',
 ]
 
 @click.command()

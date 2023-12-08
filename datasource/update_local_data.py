@@ -3,7 +3,7 @@ from binance.spot import Spot
 import pandas as pd
 import pandas_ta as ta
 
-final_end = datetime(2023, 11, 25, 0, 0, 0)
+final_end = datetime(2023, 12, 1, 0, 0, 0)
 
 def klines_to_csv(klines, symbol, interval):
   filename = "{}_{}.csv".format(
@@ -50,9 +50,13 @@ def kline_getter(symbol='BTCUSDT', interval='1d', limit=1000):
   end = final_end
   while len(klines) < limit:
     onetime_limit = limit if limit <= 1000 else 1000
-    klines += fetch_klines(symbol, interval, limit=onetime_limit, end=end)
+    new_lines = fetch_klines(symbol, interval, limit=onetime_limit, end=end)
+    klines += new_lines
     klines = sorted(klines, key=lambda kline: kline[0])
     if len(klines) < limit:
       end = datetime.fromtimestamp(klines[0][0]/1000)
-    print('now we have ', len(klines), 'lines data')
+    print('now we have', len(klines), 'lines data for', interval)
+    if len(new_lines) < onetime_limit:
+      print('not enough data, stop fetching')
+      break
   return klines
