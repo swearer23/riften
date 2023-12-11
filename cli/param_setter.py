@@ -1,5 +1,6 @@
 from enum import Enum
 import click
+from common import intervals
 
 class MODE(Enum):
   UPDATE = 1
@@ -20,25 +21,6 @@ def cli_set_mode():
   )
 
   return int(choice)
-
-intervals = [
-  '1s',
-  '1m',
-  '3m',
-  '5m',
-  '15m',
-  '30m',
-  '1h',
-  '2h',
-  '4h',
-  '6h',
-  '8h',
-  '12h',
-  '1d',
-  # '3d',
-  # '1w',
-  # '1M',
-]
 
 @click.command()
 def cli_set_interval():

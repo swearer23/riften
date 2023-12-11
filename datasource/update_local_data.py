@@ -55,7 +55,7 @@ def kline_getter(symbol='BTCUSDT', interval='1d', limit=1000):
     klines = sorted(klines, key=lambda kline: kline[0])
     if len(klines) < limit:
       end = datetime.fromtimestamp(klines[0][0]/1000)
-    print('now we have', len(klines), 'lines data for', interval)
+    print('now we have', len(klines), 'lines data for', interval, 'interval', 'symbol', symbol)
     if len(new_lines) < onetime_limit:
       print('not enough data, stop fetching')
       break
