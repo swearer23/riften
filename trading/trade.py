@@ -1,17 +1,19 @@
 class Trade:
-  def __init__(self, price, dt) -> None:
+  def __init__(self, price, dt, trade_cash=10000) -> None:
     self.buy_price = price
     self.buy_dt = dt
     self.sell_price = 0
     self.sell_dt = None
     self.closed = False
     self.profit = 0
+    self.trade_cash = trade_cash
 
   def close(self, price, dt):
     self.sell_price = price
     self.sell_dt = dt
     self.closed = True
-    self.profit = self.sell_price - self.buy_price
+    position = self.trade_cash / self.buy_price
+    self.profit = (self.sell_price - self.buy_price) * position
 
   def is_active(self):
     return self.closed == False

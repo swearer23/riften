@@ -15,7 +15,7 @@ def test_mode():
   interval = cli_set_interval(standalone_mode=False)
   path = f'./localdata/BTCUSDT_{interval}.csv'
 
-  result_df = rsi_pair(path, 30, 70)
+  result_df = rsi_pair(path, 20, 70)
   wins = len(result_df[result_df['profit'] > 0])
   loses = len(result_df[result_df['profit'] < 0])
   print(result_df)
