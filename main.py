@@ -9,7 +9,8 @@ from strats.rsi import rsi_pair
 def update_mode():
   interval = cli_set_interval(standalone_mode=False)
   klines = kline_getter(interval=interval, limit=2000)
-  klines_to_csv(klines, 'BTCUSDT', interval)
+  df = klines_to_csv(klines, 'UNIDOWNUSDT', interval)
+  return df
 
 def test_mode():
   interval = cli_set_interval(standalone_mode=False)
@@ -28,7 +29,8 @@ def main():
   # cli_set_interval(intervals)
   mode = cli_set_mode(standalone_mode=False)
   if mode == MODE.UPDATE.value:
-    update_mode()
+    df = update_mode()
+    print(df)
   elif mode == MODE.TEST.value:
     test_mode()
 
