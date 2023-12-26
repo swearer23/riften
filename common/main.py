@@ -1,11 +1,6 @@
+import os
+import json
 from binance.spot import Spot
-
-def get_all_base_assets(exchange_info=None):
-  if exchange_info is None:
-    client = Spot()
-    exchange_info = client.exchange_info()
-  base_assets = [item['baseAsset'] for item in exchange_info['symbols']]
-  return base_assets
 
 def get_all_quote_assets(exchange_info=None):
   if exchange_info is None:
@@ -15,8 +10,9 @@ def get_all_quote_assets(exchange_info=None):
   return quote_assets
 
 def get_all_symbols(quote_asset='USDT'):
+  permissions = os.environ.get('TRADE_PERMISSION').split(',')
   client = Spot()
-  exchange_info = client.exchange_info(permissions=['SPOT'])
+  exchange_info = client.exchange_info(permissions=permissions)
   quote_assets = list(set(get_all_quote_assets(exchange_info)))
   if quote_asset not in quote_assets:
     raise Exception(f'quote asset {quote_asset} is not in {quote_assets}')
@@ -25,6 +21,10 @@ def get_all_symbols(quote_asset='USDT'):
     if item['quoteAsset'] == quote_asset
   ]
   return symbols
+
+def get_all_valid_symbols():
+  symbols = get_all_symbols()
+  return [symbol for symbol in symbols if symbol not in banned_symbols]
 
 intervals = [
   # '1s',
@@ -46,7 +46,77 @@ intervals = [
 ]
 
 banned_symbols = [
-  'VENUSDT'
+  'BCCUSDT',
+  'VENUSDT',
+  'PAXUSDT',
+  'BCHABCUSDT',
+  'BCHSVUSDT',
+  'BTTUSDT',
+  'USDSUSDT',
+  'NANOUSDT',
+  'MITHUSDT',
+  'USDSBUSDT',
+  'GTOUSDT',
+  'ERDUSDT',
+  'NPXSUSDT',
+  'COCOSUSDT',
+  'TOMOUSDT',
+  'MFTUSDT',
+  'STORMUSDT',
+  'BEAMUSDT',
+  'HCUSDT',
+  'MCOUSDT',
+  'BULLUSDT',
+  'BEARUSDT',
+  'ETHBULLUSDT',
+  'ETHBEARUSDT',
+  'TCTUSDT',
+  'EOSBULLUSDT',
+  'EOSBEARUSDT',
+  'XRPBULLUSDT',
+  'XRPBEARUSDT',
+  'STRATUSDT',
+  'AIONUSDT',
+  'BNBBULLUSDT',
+  'BNBBEARUSDT',
+  'XZCUSDT',
+  'GXSUSDT',
+  'LENDUSDT',
+  'REPUSDT',
+  'BKRWUSDT',
+  'DAIUSDT',
+  'AUDUSDT',
+  'SRMUSDT',
+  'BZRXUSDT',
+  'YFIIUSDT',
+  'NBSUSDT',
+  'HNTUSDT',
+  'DNTUSDT',
+  'SUSDUSDT',
+  'BTCSTUSDT',
+  'RAMPUSDT',
+  'EPSUSDT',
+  'AUTOUSDT',
+  'BTGUSDT',
+  'MIRUSDT',
+  'NUUSDT',
+  'TORNUSDT',
+  'KEEPUSDT',
+  'TVKUSDT',
+  'TRIBEUSDT',
+  'POLYUSDT',
+  'RGTUSDT',
+  'MCUSDT',
+  'ANYUSDT',
+  'USTUSDT',
+  'ANCUSDT',
+  'NEBLUSDT',
+  'BETHUSDT',
+  'AEURUSDT',
+  'JTOUSDT',
+  '1000SATSUSDT',
+  'BONKUSDT',
+  'ACEUSDT'
 ]
 
 def is_beginning_of_interval(now, interval):
