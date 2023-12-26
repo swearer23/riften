@@ -1,15 +1,15 @@
 import sys
 from datetime import datetime
-from pprint import pprint
 from multiprocessing import Pool, cpu_count
 from common import get_all_symbols, beginning_of_interval, banned_symbols
 from hunter.prepare_data import fetch_data, filter_active_symbols
+from hunter.trade import BinaceTradingBot
 
-def open_trade(active_symbol):
-  print('open trade', active_symbol)
-  pass
+bot = BinaceTradingBot(is_test=True)
 
 if __name__ == '__main__':
+  print(bot.find_holding_trading())
+  exit()
   args = sys.argv
   now = datetime.now()
   if len(args) > 1:
@@ -29,5 +29,7 @@ if __name__ == '__main__':
     )
     active_symbols = filter_active_symbols(result) 
     if len(active_symbols) > 0:
-      open_trade(active_symbols[0])
+      bot.open_trade(active_symbols[0])
       break
+    else:
+      print('no active symbols in batch')

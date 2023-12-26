@@ -20,8 +20,9 @@ def get_active_trading(result):
     interval = df['interval'].iloc[0]
     rsi_14 = df['rsi_14'].iloc[-1]
     if df['upcross_30'].iloc[-1]:
+      price = df['close'].iloc[-1]
       ret.append((
-        symbol, interval, rsi_14
+        symbol, interval, rsi_14, price
       ))
   return ret
 
