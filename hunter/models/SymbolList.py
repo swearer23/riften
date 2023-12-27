@@ -9,11 +9,13 @@ class SymbolList:
     self.quote_assets = None
     self.symbol_list = None
     self.filtered_symbol_list = None
+    self.__map = {}
     self.__init_raw_data()
     self.__filter_banned_symbols()
     self.__init_quote_assets()
     self.__init_all_symbol()
     self.__filter_by_quote_asset(quote_assets)
+    self.__transform_to_dict()
   
   def __init_raw_data(self):
     permissions = os.environ.get('TRADE_PERMISSION').split(',')
@@ -44,10 +46,17 @@ class SymbolList:
       symbol for symbol in self.symbol_list
       if symbol.quoteAsset in quote_assets
     ]
+
+  def __transform_to_dict(self):
+    for symbol in self.symbol_list:
+      self.__map[symbol.symbol] = symbol
   
   def get_all_symbol_as_str(self):
     return [symbol.symbol for symbol in self.symbol_list]
   
   def get_all_symbols(self):
     return self.symbol_list
+  
+  def find_by_base_asset(self, base_asset):
+    return self.__map.get(f'{base_asset}USDT')
   

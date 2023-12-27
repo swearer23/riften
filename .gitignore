@@ -127,6 +127,8 @@ celerybeat.pid
 .env.develop
 .env.test
 .env.production
+.trades.json
+.holdings.json
 .venv
 env/
 venv/

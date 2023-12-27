@@ -1,15 +1,14 @@
-import math
+import json
+import uuid
 from binance.client import Client
 from hunter.bnclient import BNClient
 from hunter.prepare_data import ActiveSymbol
-from utils import floor_float, effective_precision
 
 class BinaceTradingBot:
   def __init__(self):
     self.bnclient = BNClient()
 
   def open_trade(self, active_symbol: ActiveSymbol, quantity: int):
-    print(active_symbol.get_filter_by_type('LOT_SIZE'))
     symbol = active_symbol.symbol
     order_side = Client.SIDE_BUY
     order_type = Client.ORDER_TYPE_LIMIT
@@ -22,25 +21,27 @@ class BinaceTradingBot:
       price=active_symbol.price,
       quantity=quantity,
       timeInForce=Client.TIME_IN_FORCE_IOC,
-      recvWindow=60000
+      recvWindow=60000,
+      newClientOrderId=str(uuid.uuid4())
     )
     print(ret)
 
-  def find_holding_trading(self, all_symbols):
-    orders = []
-    invalid_symbols = []
-    for symbol in all_symbols:
-      try:
-        orders += self.bnclient.client.get_all_orders(symbol=symbol)
-      except Exception as e:
-        if e.code == -1121: # Invalid symbol
-          invalid_symbols.append(symbol)
-          continue
-    if len(invalid_symbols) > 0:
-      print('invalid symbols')
-      print(invalid_symbols)
-    return orders
-  
+  def get_holding_trades(self):
+    trades = []
+    with open('.trades.json', 'w+') as f:
+      trades = json.load(f)
+    trades = trades.sort(key=lambda x: x['time'])
+    buys = [x for x in trades if x['isBuyer']]
+    sells = [x for x in trades if not x['isBuyer']]
+    for buy in buys:
+      for sell in sells:
+        if buy['orderId'] == sell['orderId']:
+          print(buy['symbol'], buy['price'], sell['price'])
+          break
+
   def is_test(self):
     return self.bnclient.is_test
+  
+  def clear_dirty_data(self):
+    self.bnclient.clear_dirty_data()
   

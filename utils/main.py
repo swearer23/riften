@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 env = os.getenv('ENV')
 
 def load_config():
-  file = f'.env.{env}' if env else '.env'
+  file = f'.env.{env}' if env else None
   load_dotenv(file)
 
 def floor_float(number, precision):
