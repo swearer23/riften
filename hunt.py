@@ -5,12 +5,6 @@ from hunter.account import BNAccount
 from hunter.models.SymbolList import SymbolList
 from hunter.tasks import TaskImpl
 from utils import load_config, Tasks, send_mail
-load_config()
-
-account = BNAccount()
-symbolList = SymbolList()
-bot = BinaceTradingBot(account=account)
-tasks = TaskImpl(account, symbolList, bot)
 
 def parse_args():
   if len(args) > 1:
@@ -26,6 +20,11 @@ def parse_args():
     raise Exception('interval is required')
 
 try:
+  load_config()
+  account = BNAccount()
+  symbolList = SymbolList()
+  bot = BinaceTradingBot(account=account)
+  tasks = TaskImpl(account, symbolList, bot)
   if __name__ == '__main__':
     args = sys.argv
     task, param = parse_args()
