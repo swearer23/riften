@@ -60,3 +60,6 @@ class SymbolList:
   def find_by_base_asset(self, base_asset):
     return self.__map.get(f'{base_asset}USDT')
   
+  def find_by_symbol_name(self, symbol_name):
+    return self.__map.get(symbol_name)
+  

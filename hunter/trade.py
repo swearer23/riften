@@ -1,47 +1,84 @@
-import json
 import uuid
 from binance.client import Client
+from binance.exceptions import BinanceAPIException
 from hunter.bnclient import BNClient
 from hunter.prepare_data import ActiveSymbol
+from hunter.models.Position import Position
+from hunter.models.Holding import Holding
+from hunter.models.Order import BNOrder
+from hunter.logger import LoggerMixin
+from hunter.account import BNAccount
 
-class BinaceTradingBot:
-  def __init__(self):
+class BinaceTradingBot(LoggerMixin):
+  def __init__(self, account: BNAccount):
     self.bnclient = BNClient()
+    self.holdings = []
+    self.account = account
 
-  def open_trade(self, active_symbol: ActiveSymbol, quantity: int):
+  def open_trade(self, active_symbol: ActiveSymbol):
     symbol = active_symbol.symbol
+    price = self.get_price_by_symbol(symbol)
+    balance = self.account.get_balance(asset='USDT')
+    quantity = active_symbol.trim_to_valid_quantity(balance, self.is_test())
+    if quantity < 0:
+      return
+    self.open_trade_logger(
+      symbol=symbol,
+      quantity=quantity,
+      price=price
+    )
+    try:
+      order = self.create_order(
+        symbol=active_symbol.symbol,
+        quantity=quantity
+      )
+      trades = order.poll_order_status()
+      if trades and len(trades) > 0:
+        Holding.concat_active_holding(trades)
+    except BinanceAPIException as e:
+      if e.code == -2010:
+        self.open_trade_failed_logger(
+          symbol=symbol,
+          quantity=quantity,
+          cost=quantity * price,
+          balance=self.account.get_balance(asset='USDT'),
+          reason='INSUFFICIENT_BALANCE'
+        )
+      elif e.code == -1013:
+        self.open_trade_failed_logger(
+          symbol=symbol,
+          quantity=quantity,
+          cost=quantity * price,
+          min_notional=active_symbol.get_min_notional(),
+          balance=self.account.get_balance(asset='USDT'),
+          reason='MIN_NOTIONAL'
+        )
+      else:
+        raise e
+
+  def create_order(self, symbol, quantity):
     order_side = Client.SIDE_BUY
-    order_type = Client.ORDER_TYPE_LIMIT
-    quantity = active_symbol.trim_to_valid_quantity(quantity)
-    print('open trade', symbol, quantity, active_symbol.baseAssetPrecision)
-    ret = self.bnclient.client.create_order(
+    order_type = Client.ORDER_TYPE_MARKET
+    order = self.bnclient.client.create_order(
       symbol=symbol,
       side=order_side,
       type=order_type,
-      price=active_symbol.price,
       quantity=quantity,
-      timeInForce=Client.TIME_IN_FORCE_IOC,
       recvWindow=60000,
       newClientOrderId=str(uuid.uuid4())
     )
-    print(ret)
-
-  def get_holding_trades(self):
-    trades = []
-    with open('.trades.json', 'w+') as f:
-      trades = json.load(f)
-    trades = trades.sort(key=lambda x: x['time'])
-    buys = [x for x in trades if x['isBuyer']]
-    sells = [x for x in trades if not x['isBuyer']]
-    for buy in buys:
-      for sell in sells:
-        if buy['orderId'] == sell['orderId']:
-          print(buy['symbol'], buy['price'], sell['price'])
-          break
+    order = BNOrder(**order)
+    return order
+  
+  def get_price_by_symbol(self, symbol):
+    return float(self.bnclient.client.get_symbol_ticker(symbol=symbol).get('price'))
 
   def is_test(self):
     return self.bnclient.is_test
   
-  def clear_dirty_data(self):
-    self.bnclient.clear_dirty_data()
+  def set_holdings(self, holdings):
+    self.holdings = [Position(**x) for x in holdings]
+
+  def close_holdings(self) -> list[Position]:
+    return [x for x in self.holdings if not x.try_to_close()]
   

@@ -8,13 +8,13 @@ final_end = datetime(2023, 12, 25, 0, 0, 0)
 
 def klines_to_df(klines):
   cols = [
-    'open_time',
+    'open_time_ts',
     'open',
     'high',
     'low',
     'close',
     'volume',
-    'close_time',
+    'close_time_ts',
     'quote_asset_volume',
     'number_of_trades',
     'taker_buy_base_asset_volume',
@@ -22,8 +22,8 @@ def klines_to_df(klines):
     'ignore'
   ]
   df = pd.DataFrame(klines, columns=cols)
-  df['open_time'] = pd.to_datetime(df['open_time'], unit='ms')
-  df['close_time'] = pd.to_datetime(df['close_time'], unit='ms')
+  df['open_time'] = pd.to_datetime(df['open_time_ts'], unit='ms').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
+  df['close_time'] = pd.to_datetime(df['close_time_ts'], unit='ms').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai')
   df['rsi_14'] = ta.momentum.rsi(df['close'], window=14)
   return df
 
@@ -44,7 +44,7 @@ def fetch_klines(symbol, interval, limit, end):
     symbol=symbol,
     interval=interval,
     endTime=end_str,
-    limit=limit
+    limit=limit,
   )
 
   klines = [list(map(float, kline)) for kline in klines]

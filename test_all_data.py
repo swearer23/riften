@@ -1,8 +1,9 @@
 from multiprocessing import Pool, cpu_count
-from datetime import datetime, timedelta
 from strats.rsi import rsi_pair
 import pandas as pd
 from common import get_all_symbols, intervals
+from utils import load_config
+load_config()
 
 def test_symbol_interval(args):
   symbol, interval, close_rsi = args
@@ -41,8 +42,8 @@ def test_symbol_interval(args):
     'loses': loses,
     'win_rate': wins / len(result_df),
     'total_time_duration': total_time_duration,
-    'efficiency': result_df['profit'].sum() / total_time_duration,
-    'trades_per_day': len(result_df) / total_time_duration,
+    'efficiency': result_df['profit'].sum() / total_time_duration if total_time_duration > 0 else 0,
+    'trades_per_day': len(result_df) / total_time_duration if total_time_duration > 0 else 0,
     'profit_per_trade': result_df['profit'].sum() / len(result_df),
     'close_rsi': close_rsi
   }, result_df

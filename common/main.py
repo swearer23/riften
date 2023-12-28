@@ -120,7 +120,9 @@ banned_symbols = [
 ]
 
 def is_beginning_of_interval(now, interval):
-  if interval == '5m':
+  if interval == '1m':
+    return now.second == 0
+  elif interval == '5m':
     return now.second == 0 and now.minute % 5 == 0
   elif interval == '15m':
     return now.second == 0 and now.minute % 15 == 0
@@ -144,7 +146,9 @@ def is_beginning_of_interval(now, interval):
     raise Exception(f'unknown interval {interval}')
   
 def beginning_of_interval(now, interval):
-  if interval == '5m':
+  if interval == '1m':
+    return now.replace(second=0)
+  elif interval == '5m':
     return now.replace(second=0, minute=now.minute - now.minute % 5)
   elif interval == '15m':
     return now.replace(second=0, minute=now.minute - now.minute % 15)

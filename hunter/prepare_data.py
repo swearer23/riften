@@ -7,9 +7,11 @@ from hunter.models.Symbol import ActiveSymbol, Symbol
 
 def fetch_data(args):
   symbol, interval, end = args
-  klines = kline_getter(symbol=symbol.symbol, interval=interval, limit=1000, end=end, silent=True)
+  klines = kline_getter(symbol=symbol, interval=interval, limit=1000, end=end, silent=True)
   df = klines_to_df(klines)
-  df['symbol'] = symbol.symbol
+  # print(last_close_time <= end)
+  df = df[df['close_time_ts'] <= end.timestamp() * 1000]
+  df['symbol'] = symbol
   df['interval'] = interval
   df['upcross_30'] = upcross(df, 'rsi_14', 30)
   return df, symbol
