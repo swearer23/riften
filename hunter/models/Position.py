@@ -97,6 +97,8 @@ class Position(LoggerMixin):
     self.trade_summary_logger({
       'profit': profit,
       'closing_reason': self.closing_reason.value,
+      'open_time': datetime.fromtimestamp(self.time/1000).strftime('%Y-%m-%d %H:%M:%S'),
+      'close_time': datetime.fromtimestamp(trades[0]['time']/1000).strftime('%Y-%m-%d %H:%M:%S'),
       **self.__raw__
     }, trades)
   
