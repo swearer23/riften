@@ -3,7 +3,7 @@ from datasource.update_local_data import (
   klines_to_df
 )
 from strats.utils import upcross
-from hunter.models.Symbol import ActiveSymbol, Symbol
+from hunter.models.Symbol import ActiveSymbol
 
 def fetch_data(args):
   symbol, interval, end = args
@@ -16,7 +16,7 @@ def fetch_data(args):
   df['upcross_30'] = upcross(df, 'rsi_14', 30)
   return df, symbol
   
-def get_active_symbols(result):
+def get_active_symbols(result) -> list[ActiveSymbol]:
   ret = []
   for df, symbol in result:
     interval = df['interval'].iloc[0]
@@ -24,6 +24,7 @@ def get_active_symbols(result):
     if df['upcross_30'].iloc[-1]:
       price = df['close'].iloc[-1]
       ret.append(ActiveSymbol(
+        raw_df=df,
         interval=interval,
         rsi_14=rsi_14,
         price=price,

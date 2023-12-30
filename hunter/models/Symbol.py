@@ -31,9 +31,36 @@ class Symbol:
 class ActiveSymbol(Symbol):
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
+    self.raw_df = kwargs['raw_df']
     self.interval = kwargs['interval']
     self.rsi_14 = kwargs['rsi_14']
     self.price = kwargs['price']
+
+  def get_surge_factor(self):
+    upbars = []
+    downbars = []
+    index = len(self.raw_df) - 1
+    while True:
+      if index < 0:
+        break
+      row = self.raw_df.iloc[index]
+      if row['close'] > row['open']:
+        upbars.append(row)
+      else:
+        downbars.append(row)
+      if len(upbars) > 0 and len(downbars) > 0 and len(upbars) == len(downbars):
+        break
+      index -= 1
+    if len(upbars) == 0 or len(downbars) == 0:
+      return 0
+    up_rally_volume = sum([x['volume'] for x in upbars])
+    down_rally_volume = sum([x['volume'] for x in downbars])
+    up_rally_price_diff = sum([x['close'] - x['open'] for x in upbars])
+    down_rally_price_diff = sum([x['open'] - x['close'] for x in downbars])
+    up_rally_amount = up_rally_volume * up_rally_price_diff
+    down_rally_amount = down_rally_volume * down_rally_price_diff
+    surge_factor = up_rally_amount / down_rally_amount if down_rally_amount > 0 else 0
+    return surge_factor
 
   def trim_to_valid_quantity(self, balance, is_test=False):
     quantity = balance / self.price

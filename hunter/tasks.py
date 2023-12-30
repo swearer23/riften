@@ -35,7 +35,7 @@ class TaskImpl(LoggerMixin):
         position.try_to_close()
       return Holding.get_active_holding_len() == 0
 
-  def scan_interesting_symbol(self, interval):
+  def scan_interesting_symbol(self, interval) -> list[ActiveSymbol]:
     print('scan interesting symbol')
     # now = datetime(2023, 12, 26, 18, 40)
     now = datetime.now()
@@ -63,7 +63,14 @@ class TaskImpl(LoggerMixin):
     if len(active_symbols) > 0:
       if holdings_cleared:
         self.open_trade(self.choose_symbol_to_open(active_symbols))
-      self.logger_interesting_symbol(active_symbols)
+      for symbol in active_symbols:
+        self.interesting_symbol_discovered_logger(
+          symbol=symbol.symbol,
+          interval=symbol.interval,
+          price=symbol.price,
+          rsi_14=symbol.rsi_14,
+          surge_factor=symbol.get_surge_factor(),
+        )
 
   def choose_symbol_to_open(self, active_symbols: list[ActiveSymbol]):
     recent_symbols = self.get_recent_trade_symbols()
@@ -75,15 +82,6 @@ class TaskImpl(LoggerMixin):
 
   def open_trade(self, symbol):
     self.bot.open_trade(symbol)
-
-  def logger_interesting_symbol(self, active_symbols: list[ActiveSymbol]):
-    for symbol in active_symbols:
-      self.interesting_symbol_discovered_logger(
-        symbol=symbol.symbol,
-        interval=symbol.interval,
-        price=symbol.price,
-        rsi_14=symbol.rsi_14,
-      )
 
   def manual_close(self, order_id):
     position = Position(**Holding.get_active_holding_by_id(order_id))
