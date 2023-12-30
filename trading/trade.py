@@ -1,5 +1,5 @@
 class Trade:
-  def __init__(self, price, dt, trade_cash=10000) -> None:
+  def __init__(self, price, dt, taker_buy_perc, trade_cash=10000, **kwargs) -> None:
     self.buy_price = price
     self.buy_dt = dt
     self.sell_price = 0
@@ -9,6 +9,8 @@ class Trade:
     self.price_diff = 0
     self.trade_cash = trade_cash
     self.close_type = None
+    self.surge_factor = kwargs.get('surge_factor')
+    self.taker_buy_perc = taker_buy_perc
 
   def close(self, price, dt, close_type):
     self.sell_price = price
@@ -34,4 +36,6 @@ class Trade:
       'profit': self.profit,
       'price_diff': self.price_diff,
       'close_type': self.close_type,
+      'surge_factor': self.surge_factor,
+      'taker_buy_per_trade': self.taker_buy_perc
     }

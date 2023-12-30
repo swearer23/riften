@@ -23,7 +23,7 @@ def test_symbol_interval(args):
       'trades_per_day': 0,
       'profit_per_trade': 0,
       'close_rsi': 0
-    }
+    }, result_df
   result_df['buy_dt'] = pd.to_datetime(result_df['buy_dt'])
   result_df['sell_dt'] = pd.to_datetime(result_df['sell_dt'])
   total_time_duration = (
@@ -56,8 +56,8 @@ with Pool(cpu_count()) as p:
     [
       (symbol, interval, close_rsi)
       for symbol in symbols[:20]
-      for interval in intervals
-      for close_rsi in range(40, 90, 5)
+      for interval in ['5m'] #intervals
+      for close_rsi in [50] #range(40, 90, 5)
     ]
   )
 
