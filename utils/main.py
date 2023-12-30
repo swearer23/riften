@@ -25,7 +25,7 @@ def effective_precision(decimal_str):
   else:
     return 0
   
-def send_mail(title, content):
+def send_mail(title, content, mimetype='plain'):
   # 设置发件人和收件人邮箱
   sender_email = os.environ.get('EMAIL_ACCOUNT')
   receiver_email = os.environ.get('EMAIL_ACCOUNT')
@@ -38,7 +38,7 @@ def send_mail(title, content):
 
   # 邮件正文内容
   body = content
-  message.attach(MIMEText(body, 'plain'))
+  message.attach(MIMEText(body, mimetype))
 
   # 连接到 SMTP 服务器
   with smtplib.SMTP_SSL('smtp.163.com', 465) as smtp_server:

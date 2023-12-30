@@ -11,7 +11,8 @@ class LoggerMixin:
     })
     send_mail(
       title=f'[{datetime.now()}] Trade Summary',
-      content=f'{pd.DataFrame([info]).to_html()}'
+      content=f'{pd.DataFrame([info]).to_html()}',
+      mimetype='html'
     )
     for trade in trades:
       self.print({
