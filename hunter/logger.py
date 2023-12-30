@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 from utils import LoggerType, send_mail
 
@@ -10,7 +10,7 @@ class LoggerMixin:
       **info,
     })
     send_mail(
-      title=f'[{datetime.now()}] Trade Summary',
+      title=f'{LoggerType.TRADE_SUMMARY} [{datetime.now()}]',
       content=f'{pd.DataFrame([info]).to_html()}',
       mimetype='html'
     )
@@ -39,10 +39,16 @@ class LoggerMixin:
     })
 
   def open_trade_logger(self, **kwargs):
-    self.print({
+    log = {
       'title': LoggerType.OPEN_TRADE,
       **kwargs
-    })
+    }
+    self.print(log)
+    send_mail(
+      title=f'{LoggerType.OPEN_TRADE} [{datetime.now()}]',
+      content=f'{pd.DataFrame([log]).to_html()}',
+      mimetype='html'
+    )
 
   def open_trade_failed_logger(self, **kwargs):
     self.print({
@@ -61,6 +67,16 @@ class LoggerMixin:
       'title': LoggerType.INTERESTING_SYMBOL,
       **kwargs
     })
+
+  def get_recent_trade_symbols(self):
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    path = f'./logs/{LoggerType.TRADE_SUMMARY}.{date_str}.csv'
+    if not os.path.exists(path):
+      path = f'./logs/{LoggerType.TRADE_SUMMARY}.{datetime.now() - timedelta(days=1)}.csv'
+    df = pd.read_csv(path)
+    df = df.sort_values(by=['datetime'], ascending=False)
+    df = df[df['profit'] < 0]
+    return df['symbol'].values.tolist()
 
   def print(self, data):
     dt_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

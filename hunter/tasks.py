@@ -62,8 +62,16 @@ class TaskImpl(LoggerMixin):
     active_symbols = self.scan_interesting_symbol(interval)
     if len(active_symbols) > 0:
       if holdings_cleared:
-        self.open_trade(active_symbols[0])
+        self.open_trade(self.choose_symbol_to_open(active_symbols))
       self.logger_interesting_symbol(active_symbols)
+
+  def choose_symbol_to_open(self, active_symbols: list[ActiveSymbol]):
+    recent_symbols = self.get_recent_trade_symbols()
+    for symbol in recent_symbols:
+      if symbol in [x.symbol for x in active_symbols]:
+        find_index = [x.symbol for x in active_symbols].index(symbol)
+        return active_symbols[find_index]
+    return active_symbols[0]
 
   def open_trade(self, symbol):
     self.bot.open_trade(symbol)
