@@ -56,9 +56,16 @@ class LoggerMixin:
       **kwargs
     })
 
+  def interesting_symbol_discovered_logger(self, **kwargs):
+    self.print({
+      'title': LoggerType.INTERESTING_SYMBOL,
+      **kwargs
+    })
+
   def print(self, data):
-    data['title'] = data['title'].value
     dt_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    data['title'] = data['title'].value
+    data['datetime'] = dt_str
     date_str = datetime.now().strftime("%Y-%m-%d")
     df = pd.DataFrame([data])
     print(f'[{dt_str}] ======================================:')

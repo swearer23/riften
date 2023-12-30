@@ -1,15 +1,16 @@
-import json
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 from hunter.account import BNAccount
 from hunter.models.SymbolList import SymbolList
+from hunter.models.Symbol import ActiveSymbol
 from hunter.trade import BinaceTradingBot
 from common import beginning_of_interval
 from hunter.prepare_data import fetch_data, get_active_symbols
 from hunter.models.Holding import Holding
 from hunter.models.Position import Position
+from hunter.logger import LoggerMixin
 
-class TaskImpl:
+class TaskImpl(LoggerMixin):
   def __init__(
       self,
       account: BNAccount,
@@ -40,6 +41,7 @@ class TaskImpl:
     now = datetime.now()
     end = beginning_of_interval(now, interval)
     all_symbols = self.symbol_list.get_all_symbols()
+    active_symbols = []
     step = cpu_count()
     for idx in range(0, len(all_symbols), step):
       result = Pool(cpu_count()).map(
@@ -52,13 +54,28 @@ class TaskImpl:
       res = []
       for r in result:
         res.append((r[0], self.symbol_list.find_by_symbol_name(r[1])))
-      active_symbols = get_active_symbols(res)
-      if len(active_symbols) > 0:
-        balance = self.account.get_balance()
-        self.bot.open_trade(active_symbols[0])
-        break
-      else:
-        print('no active symbols in batch')
+      active_symbols += get_active_symbols(res)
+    return active_symbols
+  
+  def new_round(self, interval):
+    holdings_cleared = self.clear_holdings()
+    active_symbols = self.scan_interesting_symbol(interval)
+    if len(active_symbols) > 0:
+      if holdings_cleared:
+        self.open_trade(active_symbols[0])
+      self.logger_interesting_symbol(active_symbols)
+
+  def open_trade(self, symbol):
+    self.bot.open_trade(symbol)
+
+  def logger_interesting_symbol(self, active_symbols: list[ActiveSymbol]):
+    for symbol in active_symbols:
+      self.interesting_symbol_discovered_logger(
+        symbol=symbol.symbol,
+        interval=symbol.interval,
+        price=symbol.price,
+        rsi_14=symbol.rsi_14,
+      )
 
   def manual_close(self, order_id):
     position = Position(**Holding.get_active_holding_by_id(order_id))

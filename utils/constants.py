@@ -15,3 +15,4 @@ class LoggerType(Enum):
   TRADE_SUMMARY = 'Trade Summary'
   HOLDING_REPORT = 'Holding Report'
   CLOSE_TRADE_DETAIL = 'Close Trade Detail'
+  INTERESTING_SYMBOL = 'Found Interesting Symbol'

@@ -1,10 +1,11 @@
-import sys, os
-from datetime import datetime, timedelta
+import sys, os, time
+from datetime import datetime
 from hunter.trade import BinaceTradingBot
 from hunter.account import BNAccount
 from hunter.models.SymbolList import SymbolList
 from hunter.tasks import TaskImpl
 from utils import load_config, Tasks, send_mail
+from common import is_beginning_of_interval
 
 def parse_args():
   if len(args) > 1:
@@ -32,19 +33,15 @@ try:
       tasks.init_holding()
     elif task == Tasks.SCAN_SYMBOL:
       os.environ['INTERVAL'] = param
-      if tasks.clear_holdings():
-        tasks.scan_interesting_symbol(param)
+      tasks.new_round(param)
     elif task == Tasks.LOCAL_SCAN_SYMBOL:
-      from time import sleep
-      from common import is_beginning_of_interval
       while True:
         os.environ['INTERVAL'] = param
         now = datetime.now() # - timedelta(minutes=15)
         if is_beginning_of_interval(now, param):
           print(f'[{now}] is beginning of {param}')
-          if tasks.clear_holdings():
-            tasks.scan_interesting_symbol(param)
-        sleep(1)
+          tasks.new_round(param)
+        time.sleep(1)
     elif task == Tasks.MANUAL_CLOSE_ORDER:
       tasks.manual_close()
 except Exception as e:
@@ -52,3 +49,4 @@ except Exception as e:
     title=f'[{datetime.now()}] Fatal Error',
     content=f'{e}'
   )
+  raise e
