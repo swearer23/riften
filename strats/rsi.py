@@ -55,9 +55,9 @@ def rsi_pair(path, buy_rsi, sell_rsi):
             surge_factor=surge_factor,
           ))
       
-    if row[f'downcross_{buy_rsi}']:
-      if last_order and last_order.is_active():
-        last_order.close(row['close'], row['open_time'], 'downcross_buy_rsi')
+    # if row[f'downcross_{buy_rsi}']:
+    #   if last_order and last_order.is_active():
+    #     last_order.close(row['close'], row['open_time'], 'downcross_buy_rsi')
 
     if row[f'downcross_{sell_rsi}']:
       if last_order and last_order.is_active():
@@ -66,7 +66,7 @@ def rsi_pair(path, buy_rsi, sell_rsi):
     # if (
     #   last_order
     #   and last_order.is_active()
-    #   and row['close'] < last_order.buy_price # * 0.998
+    #   and row['close'] < last_order.buy_price * 0.99
     # ):
     #   last_order.close(row['close'], row['open_time'], 'stop_loss')
 

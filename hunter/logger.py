@@ -69,10 +69,15 @@ class LoggerMixin:
     })
 
   def get_recent_trade_symbols(self):
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    path = f'./logs/{LoggerType.TRADE_SUMMARY}.{date_str}.csv'
+    today = datetime.now()
+    date_str = today.strftime("%Y-%m-%d")
+    path = f'./logs/{LoggerType.TRADE_SUMMARY.value}.{date_str}.csv'
     if not os.path.exists(path):
-      path = f'./logs/{LoggerType.TRADE_SUMMARY}.{datetime.now() - timedelta(days=1)}.csv'
+      yesterday= today - timedelta(days=1)
+      date_str = yesterday.strftime("%Y-%m-%d")
+      path = f'./logs/{LoggerType.TRADE_SUMMARY}.{date_str}.csv'
+    if not os.path.exists(path):
+      return []
     df = pd.read_csv(path)
     df = df.sort_values(by=['datetime'], ascending=False)
     df = df[df['profit'] < 0]
