@@ -86,8 +86,8 @@ class Position(LoggerMixin):
       return PositionCloseReason.STOP_LOSS_RSI
     elif df[f'downcross_{take_profit_downcross_rsi}'].iloc[-1]:
       return PositionCloseReason.TAKE_PROFIT
-    elif stoploss:
-      return PositionCloseReason.STOP_LOSS_PERC
+    # elif stoploss:
+    #   return PositionCloseReason.STOP_LOSS_PERC
     else:
       return False
   

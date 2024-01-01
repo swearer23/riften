@@ -47,21 +47,30 @@ def rsi_pair(path, buy_rsi, sell_rsi):
       if holdings.is_empty():
         surge_factor = trace_back(df, index)
         taker_buy_perc = row['taker_buy_base_asset_volume'] / row['volume']
-        if 2 < surge_factor < 5:
+        if 2 < surge_factor < 10:
           holdings.append(Trade(
+            row['open'],
             row['close'],
             row['open_time'],
             taker_buy_perc,
             surge_factor=surge_factor,
+            buy_rsi=row['rsi_14'],
+            raw_df=df
           ))
-      
+
     # if row[f'downcross_{buy_rsi}']:
     #   if last_order and last_order.is_active():
     #     last_order.close(row['close'], row['open_time'], 'downcross_buy_rsi')
-
     if row[f'downcross_{sell_rsi}']:
       if last_order and last_order.is_active():
         last_order.close(row['close'], row['open_time'], 'downcross_sell_rsi')
+
+    # if (
+    #   last_order
+    #   and last_order.is_active()
+    #   and row['close'] > last_order.buy_price * 1.01
+    # ):
+    #   last_order.close(row['close'], row['open_time'], 'take_profit')
 
     # if (
     #   last_order

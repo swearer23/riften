@@ -1,4 +1,6 @@
-class Holdings(list):
+from trading.trade import Trade
+
+class Holdings(list[Trade]):
   def last(self):
     if self.is_empty():
       return None
