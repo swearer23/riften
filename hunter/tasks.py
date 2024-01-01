@@ -78,6 +78,22 @@ class TaskImpl(LoggerMixin):
       if symbol in [x.symbol for x in active_symbols]:
         find_index = [x.symbol for x in active_symbols].index(symbol)
         return active_symbols[find_index]
+
+    # sort by surge factor, choose the highest one
+    active_symbols = sorted(
+      active_symbols,
+      key=lambda x: x.get_surge_factor(),
+      reverse=True
+    )
+
+    optimized_active_symbols = [
+      x for x in active_symbols
+      if 2 < x.get_surge_factor() < 5
+    ]
+
+    if len(optimized_active_symbols) > 0:
+      return optimized_active_symbols[0]
+
     return active_symbols[0]
 
   def open_trade(self, symbol):
