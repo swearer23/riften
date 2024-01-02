@@ -80,7 +80,10 @@ class TaskImpl(LoggerMixin):
           rsi_14=symbol.rsi_14,
           surge_factor=symbol.get_surge_factor(),
         )
-    self.rebalance(active_symbols)
+    '''
+      rebalance is not working well, so disable it
+    '''
+    # self.rebalance(active_symbols)
   
   def rebalance(self, active_symbols: list[ActiveSymbol]):
     active_position = self.get_active_position()
@@ -118,27 +121,6 @@ class TaskImpl(LoggerMixin):
     return better_symbols
 
   def choose_symbol_to_open(self, active_symbols: list[ActiveSymbol]):
-    recent_symbols = self.get_recent_trade_symbols()
-    for symbol in recent_symbols:
-      if symbol in [x.symbol for x in active_symbols]:
-        find_index = [x.symbol for x in active_symbols].index(symbol)
-        return active_symbols[find_index]
-
-    # sort by surge factor, choose the highest one
-    active_symbols = sorted(
-      active_symbols,
-      key=lambda x: x.get_surge_factor(),
-      reverse=True
-    )
-
-    optimized_active_symbols = [
-      x for x in active_symbols
-      if 2 < x.get_surge_factor() < 5
-    ]
-
-    if len(optimized_active_symbols) > 0:
-      return optimized_active_symbols[0]
-
     return active_symbols[0]
 
   def open_trade(self, symbol):

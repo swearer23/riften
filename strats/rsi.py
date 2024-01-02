@@ -56,10 +56,10 @@ def rsi_pair(path, buy_rsi, sell_rsi):
         surge_factor = trace_back(df, index)
         last_rsi_below_at = last_rsi_below(df, buy_rsi, row)
         taker_buy_perc = row['taker_buy_base_asset_volume'] / row['volume']
-        if surge_factor < 2 or surge_factor > 10:
-          continue
-        if last_rsi_below_at and last_rsi_below_at <= 30:
-          continue
+        # if surge_factor < 2 or surge_factor > 10:
+        #   continue
+        # if last_rsi_below_at and last_rsi_below_at <= 30:
+        #   continue
         holdings.append(Trade(
           row['open'],
           row['close'],
@@ -92,7 +92,7 @@ def rsi_pair(path, buy_rsi, sell_rsi):
     # if (
     #   last_order
     #   and last_order.is_active()
-    #   and row['close'] < last_order.buy_price * 0.995
+    #   and row['close'] < last_order.buy_price * 0.99
     # ):
     #   last_order.close(row['close'], row['open_time'], 'stop_loss')
 
