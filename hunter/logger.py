@@ -98,5 +98,5 @@ class LoggerMixin:
     if not os.path.exists(path):
       df.to_csv(path, index=False)
     else:
-      df.to_csv(path, mode='a', header=False, index=False)
+      df.to_csv(path, mode='a', header=True, index=False)
     
