@@ -99,5 +99,5 @@ class LoggerMixin:
       df.to_csv(path, index=False)
     else:
       df = pd.concat([pd.read_csv(path), df], ignore_index=True)
-      df.to_csv(path, mode='a', header=False, index=False)
+      df.to_csv(path, header=True, index=False)
     
