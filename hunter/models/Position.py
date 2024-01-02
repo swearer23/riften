@@ -3,6 +3,7 @@ from time import sleep
 from enum import Enum
 from datetime import datetime
 from binance.client import Client
+from binance.exceptions import BinanceAPIException
 from hunter.bnclient import BNClient
 from common import beginning_of_interval
 from strats.utils import downcross
@@ -33,9 +34,16 @@ class Position(LoggerMixin):
     df, _ = fetch_data((self.symbol, self.interval, end))
     self.closing_reason = self.is_closing_for(df)
     if self.closing_reason:
-      trades = self.close()
-      self.post_close(trades)
-      return True
+      try:
+        trades = self.close()
+        self.post_close(trades)
+        return True
+      except BinanceAPIException as e:
+        if e.code == -1013 and e.message == 'Filter failure: NOTIONAL':
+          Holding.clear_holdings()
+          return True
+        else:
+          raise e
     else:
       current_price = df['close'].values.tolist()[-1]
       current_rsi_14 = df['rsi_14'].values.tolist()[-1]

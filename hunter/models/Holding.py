@@ -22,6 +22,10 @@ class Holding:
     json.dump(holdings, open('.holdings.json', 'w'))
 
   @staticmethod
+  def clear_holdings():
+    json.dump([], open('.holdings.json', 'w'))
+
+  @staticmethod
   def get_all_active_holding() -> list:
     return json.load(open('.holdings.json', 'r'))
   
