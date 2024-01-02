@@ -7,7 +7,7 @@ from hunter.trade import BinaceTradingBot
 from common import beginning_of_interval
 from hunter.prepare_data import fetch_data, get_active_symbols
 from hunter.models.Holding import Holding
-from hunter.models.Position import Position
+from hunter.models.Position import Position, PositionCloseReason
 from hunter.logger import LoggerMixin
 
 class TaskImpl(LoggerMixin):
@@ -34,6 +34,15 @@ class TaskImpl(LoggerMixin):
       for position in position_list:
         position.try_to_close()
       return Holding.get_active_holding_len() == 0
+    
+  def get_active_position(self):
+    active_positions = [
+      Position(**x) for x in Holding.get_all_active_holding()
+    ]
+    if len(active_positions) == 0:
+      return None
+    else:
+      return active_positions[0]
 
   def scan_interesting_symbol(self, interval) -> list[ActiveSymbol]:
     print('scan interesting symbol')
@@ -71,6 +80,25 @@ class TaskImpl(LoggerMixin):
           rsi_14=symbol.rsi_14,
           surge_factor=symbol.get_surge_factor(),
         )
+    self.rebalance(active_symbols)
+  
+  def rebalance(self, active_symbols: list[ActiveSymbol]):
+    active_position = self.get_active_position()
+    if active_position and active_position.get_curr_profit() < 0:
+      better_symbol = self.found_better_symbol(active_symbols)
+      if better_symbol:
+        active_position.try_to_close(reason=PositionCloseReason.REBALANCE)
+        self.open_trade(better_symbol)
+
+  def found_better_symbol(self, interesting_symbols: list[ActiveSymbol]):
+    better_symbols = [x for x in interesting_symbols if 5 > x.get_surge_factor() > 2]
+    if len(better_symbols) > 0:
+      better_symbols = sorted(
+        better_symbols,
+        key=lambda x: x.get_surge_factor(),
+        reverse=True
+      )
+      return better_symbols[0]
 
   def choose_symbol_to_open(self, active_symbols: list[ActiveSymbol]):
     recent_symbols = self.get_recent_trade_symbols()

@@ -16,6 +16,7 @@ class PositionCloseReason(Enum):
   STOP_LOSS_RSI = 'STOP_LOSS_RSI'
   TAKE_PROFIT = 'TAKE_PROFIT'
   MANUAL = 'MANUAL'
+  REBALANCE = 'REBALANCE'
 
 class Position(LoggerMixin):
   def __init__(self, **kwargs):
@@ -29,10 +30,17 @@ class Position(LoggerMixin):
     self.interval = kwargs.get('interval', '5m')
     self.closing_reason = False
 
-  def try_to_close(self):
+  def get_curr_df(self):
     end = beginning_of_interval(datetime.now(), self.interval)
     df, _ = fetch_data((self.symbol, self.interval, end))
-    self.closing_reason = self.is_closing_for(df)
+    return df
+
+  def try_to_close(self, reason=None):
+    df = self.get_curr_df()
+    if reason is None:
+      self.closing_reason = self.is_closing_for(df)
+    else:
+      self.closing_reason = reason
     if self.closing_reason:
       try:
         trades = self.close()
@@ -40,6 +48,7 @@ class Position(LoggerMixin):
         return True
       except BinanceAPIException as e:
         if e.code == -1013 and e.message == 'Filter failure: NOTIONAL':
+          print(e)
           Holding.clear_holdings()
           return True
         else:
@@ -56,7 +65,7 @@ class Position(LoggerMixin):
         profit=current_price / self.price * 100 - 100
       )
       return False
-
+    
   def close(self):
     order = self.bnclient.client.create_order(
         symbol=self.symbol,
@@ -87,19 +96,19 @@ class Position(LoggerMixin):
   def is_closing_for(self, df):
     take_profit_downcross_rsi = int(os.environ.get('TAKE_PROFIT_DOWNCROSS_RSI'))
     stop_loss_downcross_rsi = int(os.environ.get('STOP_LOSS_DOWNCROSS_RSI'))
-    stop_loss_percentage = float(os.environ.get('STOP_LOSS_PERCENTAGE'))
     df[f'downcross_{stop_loss_downcross_rsi}'] = downcross(df, 'rsi_14', stop_loss_downcross_rsi)
     df[f'downcross_{take_profit_downcross_rsi}'] = downcross(df, 'rsi_14', take_profit_downcross_rsi)
-    current_price = df['close'].values.tolist()[-1]
-    stoploss = current_price < self.price * (1 - stop_loss_percentage)
     if df[f'downcross_{stop_loss_downcross_rsi}'].iloc[-1]:
       return PositionCloseReason.STOP_LOSS_RSI
     elif df[f'downcross_{take_profit_downcross_rsi}'].iloc[-1]:
       return PositionCloseReason.TAKE_PROFIT
-    # elif stoploss:
-    #   return PositionCloseReason.STOP_LOSS_PERC
     else:
       return False
+    
+  def get_curr_profit(self):
+    df = self.get_curr_df()
+    current_price = df['close'].values.tolist()[-1]
+    return (current_price / self.price) * 100 - 100
   
   def post_close(self, trades):
     Holding.remove_active_holding(self.id)

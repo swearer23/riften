@@ -61,6 +61,9 @@ class ActiveSymbol(Symbol):
     down_rally_amount = down_rally_volume * down_rally_price_diff
     surge_factor = up_rally_amount / down_rally_amount if down_rally_amount > 0 else 0
     return surge_factor
+  
+  def get_last_upcross_buy_rsi(self):
+    pass
 
   def trim_to_valid_quantity(self, balance, is_test=False):
     quantity = balance / self.price
