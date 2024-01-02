@@ -68,13 +68,16 @@ class LoggerMixin:
       **kwargs
     })
 
+  def file_name_format(self):
+    return "%Y-%m"
+
   def get_recent_trade_symbols(self):
     today = datetime.now()
-    date_str = today.strftime("%Y-%m-%d")
+    date_str = today.strftime(self.file_name_format())
     path = f'./logs/{LoggerType.TRADE_SUMMARY.value}.{date_str}.csv'
     if not os.path.exists(path):
       yesterday= today - timedelta(days=1)
-      date_str = yesterday.strftime("%Y-%m-%d")
+      date_str = yesterday.strftime(self.file_name_format())
       path = f'./logs/{LoggerType.TRADE_SUMMARY}.{date_str}.csv'
     if not os.path.exists(path):
       return []
@@ -87,7 +90,7 @@ class LoggerMixin:
     dt_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     data['title'] = data['title'].value
     data['datetime'] = dt_str
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    date_str = datetime.now().strftime(self.file_name_format())
     df = pd.DataFrame([data])
     print(f'[{dt_str}] ======================================:')
     print(df)
