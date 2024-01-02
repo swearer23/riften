@@ -44,7 +44,9 @@ class Position(LoggerMixin):
         price=self.price,
         quantity=self.quantity,
         current_price=current_price,
-        current_rsi_14=current_rsi_14)
+        current_rsi_14=current_rsi_14,
+        profit=current_price / self.price * 100 - 100
+      )
       return False
 
   def close(self):
