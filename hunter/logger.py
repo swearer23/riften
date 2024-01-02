@@ -98,8 +98,6 @@ class LoggerMixin:
     if not os.path.exists(path):
       df.to_csv(path, index=False)
     else:
-      exiting = pd.read_csv(path).to_dict('records')
-      new = df.to_dict('records')
-      concat = exiting + new
-      pd.DataFrame(concat).to_csv(path, header=True, index=False)
+      df = pd.concat([pd.read_csv(path), df], ignore_index=True)
+      df.to_csv(path, header=True, index=False)
     
