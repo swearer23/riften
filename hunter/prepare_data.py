@@ -5,6 +5,8 @@ from datasource.update_local_data import (
 )
 from strats.utils import upcross
 from hunter.models.Symbol import ActiveSymbol
+  
+buy_rsi = os.environ.get('OPEN_TRADE_UPCROSS_RSI')
 
 def fetch_data(args):
   symbol, interval, end = args
@@ -14,11 +16,10 @@ def fetch_data(args):
   df = df[df['close_time_ts'] <= end.timestamp() * 1000]
   df['symbol'] = symbol
   df['interval'] = interval
-  df['upcross_30'] = upcross(df, 'rsi_14', 30)
+  df[f'upcross_{buy_rsi}'] = upcross(df, 'rsi_14', buy_rsi)
   return df, symbol
   
 def get_active_symbols(result) -> list[ActiveSymbol]:
-  buy_rsi = os.environ.get('OPEN_TRADE_UPCROSS_RSI')
   ret = []
   for df, symbol in result:
     interval = df['interval'].iloc[0]
