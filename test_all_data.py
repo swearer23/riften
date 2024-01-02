@@ -54,7 +54,7 @@ with Pool(cpu_count()) as p:
       (symbol, interval, close_rsi)
       for symbol in symbols
       for interval in ['5m'] #intervals
-      for close_rsi in [65] #range(40, 90, 5)
+      for close_rsi in [70] #range(40, 90, 5)
     ]
   )
 
