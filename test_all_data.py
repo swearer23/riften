@@ -1,19 +1,21 @@
+from utils import load_config
+load_config()
+
 import os
 from multiprocessing import Pool, cpu_count
 from strats.rsi import rsi_pair
 import pandas as pd
-from common import get_all_symbols, intervals
-from utils import load_config
-load_config()
+from common import get_all_symbols
 
 def test_symbol_interval(args):
   symbol, interval, close_rsi = args
   path = f'./localdata/{symbol}_{interval}_test.csv'
   buy_rsi = int(os.environ['OPEN_TRADE_UPCROSS_RSI'])
+  stoploss_rsi = int(os.environ['STOP_LOSS_DOWNCROSS_RSI'])
 
   if not os.path.exists(path):
     return None, None
-  result_df = rsi_pair(path, buy_rsi, close_rsi)
+  result_df = rsi_pair(path, buy_rsi, stoploss_rsi=stoploss_rsi, takeprofit_rsi=close_rsi)
   if len(result_df) == 0:
     return None, None
   result_df['buy_dt'] = pd.to_datetime(result_df['buy_dt'])

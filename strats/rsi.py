@@ -1,8 +1,7 @@
-from datetime import datetime
 import pandas as pd
 from trading.trade import Trade
 from trading.holdings import Holdings
-from strats.utils import upcross, downcross
+from hunter.prepare_data import process_df
 
 def trace_back(df, index):
   upbars = []
@@ -36,15 +35,12 @@ def last_rsi_below(df, buy_rsi, row):
     row['open_time'] - sub_df['open_time'].iloc[-1]
   ).total_seconds() / 60 if len(sub_df) > 0 else None
 
-def rsi_pair(path, buy_rsi, sell_rsi):
+def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
   df = pd.read_csv(path)
   df['open_time'] = pd.to_datetime(df['open_time']) + pd.to_timedelta(8, unit='h')
-  # df.index = df['open_time']
   df = df.drop_duplicates(subset=['open_time'], keep='last')
+  df = process_df(df)
 
-  df[f'upcross_{buy_rsi}'] = upcross(df, 'rsi_14', buy_rsi)
-  df[f'downcross_{buy_rsi}'] = downcross(df, 'rsi_14', buy_rsi)
-  df[f'downcross_{sell_rsi}'] = downcross(df, 'rsi_14', sell_rsi)
   df = df.sort_values(by='open_time')
   df = df.reset_index()
 
@@ -75,12 +71,12 @@ def rsi_pair(path, buy_rsi, sell_rsi):
     # if last_order and last_order.is_active() and last_order.trade_lasting(row) > 60:
     #   last_order.close(row['close'], row['open_time'], 'trade_lasting')
 
-    if row[f'downcross_{buy_rsi}']:
+    if row[f'downcross_{stoploss_rsi}']:
       if last_order and last_order.is_active():
-        last_order.close(row['close'], row['open_time'], 'downcross_buy_rsi')
-    if row[f'downcross_{sell_rsi}']:
+        last_order.close(row['close'], row['open_time'], 'stoploss_rsi')
+    if row[f'downcross_{takeprofit_rsi}']:
       if last_order and last_order.is_active():
-        last_order.close(row['close'], row['open_time'], 'downcross_sell_rsi')
+        last_order.close(row['close'], row['open_time'], 'takeprofit_rsi')
 
     # if (
     #   last_order

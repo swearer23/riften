@@ -3,10 +3,18 @@ from datasource.update_local_data import (
   kline_getter,
   klines_to_df
 )
-from strats.utils import upcross
+from strats.utils import upcross, downcross
 from hunter.models.Symbol import ActiveSymbol
-  
-buy_rsi = os.environ.get('OPEN_TRADE_UPCROSS_RSI')
+
+buy_rsi = int(os.environ.get('OPEN_TRADE_UPCROSS_RSI'))
+stoploss_rsi = int(os.environ.get('STOP_LOSS_DOWNCROSS_RSI'))
+takeprofit_rsi = int(os.environ.get('TAKE_PROFIT_DOWNCROSS_RSI'))
+
+def process_df(df):
+  df[f'upcross_{buy_rsi}'] = upcross(df, 'rsi_14', buy_rsi)
+  df[f'downcross_{stoploss_rsi}'] = downcross(df, 'rsi_14', stoploss_rsi)
+  df[f'downcross_{takeprofit_rsi}'] = downcross(df, 'rsi_14', takeprofit_rsi)
+  return df
 
 def fetch_data(args):
   symbol, interval, end = args
@@ -16,7 +24,7 @@ def fetch_data(args):
   df = df[df['close_time_ts'] <= end.timestamp() * 1000]
   df['symbol'] = symbol
   df['interval'] = interval
-  df[f'upcross_{buy_rsi}'] = upcross(df, 'rsi_14', buy_rsi)
+  df = process_df(df, symbol, interval)
   return df, symbol
   
 def get_active_symbols(result) -> list[ActiveSymbol]:
