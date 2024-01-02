@@ -16,6 +16,8 @@ class Trade:
     self.taker_buy_perc = taker_buy_perc
     self.buy_rsi = kwargs.get('buy_rsi')
     self.df = kwargs.get('raw_df')
+    self.assigned_buy_rsi = kwargs.get('assigned_buy_rsi')
+    self.trade_row = kwargs.get('row')
 
   def close(self, price, dt, close_type):
     self.sell_price = price
@@ -28,6 +30,16 @@ class Trade:
 
   def is_active(self):
     return self.closed == False
+  
+  def trade_lasting(self, curr):
+    return (curr['open_time'] - self.buy_dt).total_seconds() / 60
+  
+  def last_rsi_below(self):
+    sub_df = self.df[self.df[f'upcross_{self.assigned_buy_rsi}'] == True]
+    sub_df = sub_df[sub_df['open_time'] < self.trade_row['open_time']]
+    return (
+      self.buy_dt - sub_df['open_time'].iloc[-1]
+    ).total_seconds() / 60 if len(sub_df) > 0 else None
   
   def __repr__(self) -> str:
     return self.to_dict().__repr__()
@@ -71,4 +83,5 @@ class Trade:
       'highest_profit': highest_profit,
       'first_below_index': first_below_index,
       'highest_profit_index': highest_profit_index,
+      'last_rsi_below': self.last_rsi_below()
     }

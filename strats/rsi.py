@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 from trading.trade import Trade
 from trading.holdings import Holdings
@@ -28,6 +29,13 @@ def trace_back(df, index):
   surge_factor = up_rally_amount / down_rally_amount if down_rally_amount > 0 else 0
   return surge_factor
 
+def last_rsi_below(df, buy_rsi, row):
+  sub_df = df[df[f'upcross_{buy_rsi}'] == True]
+  sub_df = sub_df[sub_df['open_time'] < row['open_time']]
+  return (
+    row['open_time'] - sub_df['open_time'].iloc[-1]
+  ).total_seconds() / 60 if len(sub_df) > 0 else None
+
 def rsi_pair(path, buy_rsi, sell_rsi):
   df = pd.read_csv(path)
   df['open_time'] = pd.to_datetime(df['open_time']) + pd.to_timedelta(8, unit='h')
@@ -46,21 +54,30 @@ def rsi_pair(path, buy_rsi, sell_rsi):
     if row[f'upcross_{buy_rsi}']:
       if holdings.is_empty():
         surge_factor = trace_back(df, index)
+        last_rsi_below_at = last_rsi_below(df, buy_rsi, row)
         taker_buy_perc = row['taker_buy_base_asset_volume'] / row['volume']
-        if 2 < surge_factor < 10:
-          holdings.append(Trade(
-            row['open'],
-            row['close'],
-            row['open_time'],
-            taker_buy_perc,
-            surge_factor=surge_factor,
-            buy_rsi=row['rsi_14'],
-            raw_df=df
-          ))
+        if surge_factor < 2 or surge_factor > 10:
+          continue
+        if last_rsi_below_at and last_rsi_below_at <= 30:
+          continue
+        holdings.append(Trade(
+          row['open'],
+          row['close'],
+          row['open_time'],
+          taker_buy_perc,
+          surge_factor=surge_factor,
+          buy_rsi=row['rsi_14'],
+          raw_df=df,
+          row=row,
+          assigned_buy_rsi=buy_rsi
+        ))
+    
+    # if last_order and last_order.is_active() and last_order.trade_lasting(row) > 60:
+    #   last_order.close(row['close'], row['open_time'], 'trade_lasting')
 
-    # if row[f'downcross_{buy_rsi}']:
-    #   if last_order and last_order.is_active():
-    #     last_order.close(row['close'], row['open_time'], 'downcross_buy_rsi')
+    if row[f'downcross_{buy_rsi}']:
+      if last_order and last_order.is_active():
+        last_order.close(row['close'], row['open_time'], 'downcross_buy_rsi')
     if row[f'downcross_{sell_rsi}']:
       if last_order and last_order.is_active():
         last_order.close(row['close'], row['open_time'], 'downcross_sell_rsi')
@@ -75,7 +92,7 @@ def rsi_pair(path, buy_rsi, sell_rsi):
     # if (
     #   last_order
     #   and last_order.is_active()
-    #   and row['close'] < last_order.buy_price * 0.99
+    #   and row['close'] < last_order.buy_price * 0.995
     # ):
     #   last_order.close(row['close'], row['open_time'], 'stop_loss')
 
