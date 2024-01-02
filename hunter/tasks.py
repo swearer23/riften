@@ -91,6 +91,23 @@ class TaskImpl(LoggerMixin):
         self.open_trade(better_symbol)
 
   def found_better_symbol(self, interesting_symbols: list[ActiveSymbol]):
+    better_last_upcross_rsi_symbols = self.find_better_last_upcross_rsi_symbols(interesting_symbols)
+    better_surge_symbols = self.find_better_surge_symbols(interesting_symbols)
+    inter = set(better_last_upcross_rsi_symbols).intersection(set(better_surge_symbols))
+    if len(inter) > 0:
+      return list(inter)[0]
+    elif len(better_surge_symbols) > 0:
+      return better_surge_symbols[0]
+    elif len(better_last_upcross_rsi_symbols) > 0:
+      return better_last_upcross_rsi_symbols[0]
+    else:
+      return None
+
+  def find_better_last_upcross_rsi_symbols(self, interesting_symbols: list[ActiveSymbol]):
+    better_symbols = [x for x in interesting_symbols if x.get_last_upcross_buy_rsi() > 30]
+    return better_symbols
+    
+  def find_better_surge_symbols(self, interesting_symbols: list[ActiveSymbol]):
     better_symbols = [x for x in interesting_symbols if 5 > x.get_surge_factor() > 2]
     if len(better_symbols) > 0:
       better_symbols = sorted(
@@ -98,7 +115,7 @@ class TaskImpl(LoggerMixin):
         key=lambda x: x.get_surge_factor(),
         reverse=True
       )
-      return better_symbols[0]
+    return better_symbols
 
   def choose_symbol_to_open(self, active_symbols: list[ActiveSymbol]):
     recent_symbols = self.get_recent_trade_symbols()

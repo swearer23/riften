@@ -1,3 +1,4 @@
+import os
 from datasource.update_local_data import (
   kline_getter,
   klines_to_df
@@ -17,11 +18,12 @@ def fetch_data(args):
   return df, symbol
   
 def get_active_symbols(result) -> list[ActiveSymbol]:
+  buy_rsi = os.environ.get('OPEN_TRADE_UPCROSS_RSI')
   ret = []
   for df, symbol in result:
     interval = df['interval'].iloc[0]
     rsi_14 = df['rsi_14'].iloc[-1]
-    if df['upcross_30'].iloc[-1]:
+    if df[f'upcross_{buy_rsi}'].iloc[-1]:
       price = df['close'].iloc[-1]
       ret.append(ActiveSymbol(
         raw_df=df,

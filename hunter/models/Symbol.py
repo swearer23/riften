@@ -1,3 +1,4 @@
+import os
 from utils import floor_float, effective_precision
 
 class Symbol:
@@ -63,7 +64,13 @@ class ActiveSymbol(Symbol):
     return surge_factor
   
   def get_last_upcross_buy_rsi(self):
-    pass
+    buy_rsi = os.environ.get('OPEN_TRADE_UPCROSS_RSI')
+    row = self.raw_df.iloc[-1]
+    sub_df = self.raw_df[self.raw_df[f'upcross_{buy_rsi}'] == True]
+    sub_df = sub_df[sub_df['open_time'] < row['open_time']]
+    return (
+      row['open_time'] - sub_df['open_time'].iloc[-1]
+    ).total_seconds() / 60 if len(sub_df) > 0 else None
 
   def trim_to_valid_quantity(self, balance, is_test=False):
     quantity = balance / self.price
