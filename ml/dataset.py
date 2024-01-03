@@ -37,9 +37,11 @@ def modify_df(df: pd.DataFrame):
   df['hour'] = pd.to_datetime(df['open_time']).dt.hour
   df['minute'] = pd.to_datetime(df['open_time']).dt.minute
   df['change'] = (df['close'] - df['open']) / df['open']
+  df['true_change'] = (df['high'] - df['low']) / df['open']
   df['rsi_change'] = (df['rsi_14'] - df['rsi_14'].shift(1)) / df['rsi_14'].shift(1)
   df['volume_change'] = (df['volume'] - df['volume'].shift(1)) / df['volume'].shift(1)
   df['volume_change'] = df['volume_change'].replace([np.inf, -np.inf], 0)
+  df['taker_percents'] = df['taker_buy_base_asset_volume'] / df['volume']
   return df
 
 def make_dataset(f):

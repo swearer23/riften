@@ -65,8 +65,8 @@ def split_symbol(group):
 
 def split():
   data = pd.read_csv('./ml/datasets/dataset.csv')
-  print(data.columns)
-  exit()
+  # print(data.columns)
+  # exit()
   X = []
   Y = []
   result = Pool(cpu_count()).map(split_symbol, [x for _, x in data.groupby('symbol')])

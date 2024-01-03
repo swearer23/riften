@@ -5,8 +5,9 @@ num_epochs = 1000
 lookback = 30
 cols = [
   'rsi_14', 'change', 'rsi_change',
-  # 'volume_change', 'volume',
-  # 'weekday', 'hour', 'minute',
+  'volume_change', 'volume',
+  'number_of_trades', 'taker_percents',
+  'weekday', 'hour', 'minute',
   'label'
 ]
 hidden_size = 128 # 假设隐藏层大小为10
