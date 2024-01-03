@@ -1,7 +1,4 @@
 import sys
-from utils import load_config
-config = load_config()
-
 from ml.dataset import init_dataset
 from ml.train import train
 

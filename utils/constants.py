@@ -1,3 +1,7 @@
+from utils import load_config
+config = load_config()
+import os
+
 from enum import Enum
 
 class Tasks(Enum):
@@ -16,3 +20,7 @@ class LoggerType(Enum):
   HOLDING_REPORT = 'Holding Report'
   CLOSE_TRADE_DETAIL = 'Close Trade Detail'
   INTERESTING_SYMBOL = 'Found Interesting Symbol'
+
+buy_rsi = int(os.environ['OPEN_TRADE_UPCROSS_RSI'])
+stoploss_rsi = int(os.environ['STOP_LOSS_DOWNCROSS_RSI'])
+takeprofit_rsi = int(os.environ['TAKE_PROFIT_DOWNCROSS_RSI'])

@@ -4,16 +4,18 @@ import torch
 from torch import nn
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from transformers import TimeSeriesTransformerConfig, TimeSeriesTransformerForPrediction
 from sklearn.model_selection import train_test_split
 from ml.LSTMModel import LSTMClassifier
-from ml.MultiDimLinearClassifier import MultiDimLinearClassifier
-from sklearn.preprocessing import StandardScaler
-
-batch_size = 1024
-learning_rate = 1e-4
-num_classes = 2
-num_epochs = 1000
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from ml.constants import (
+  lookback,
+  num_classes,
+  batch_size,
+  learning_rate,
+  num_epochs,
+  cols,
+  hidden_size
+)
 
 class MultivariateTimeSeriesDataset(Dataset):
     def __init__(self, X, y):
@@ -26,9 +28,6 @@ class MultivariateTimeSeriesDataset(Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
-lookback = 30
-cols = ['rsi_14', 'change', 'rsi_change', 'label']
-
 def trace_back_set(df: pd.DataFrame, idx):
   if idx >= lookback:
     section = df.iloc[idx - lookback:idx]
@@ -40,6 +39,7 @@ def trace_back_set(df: pd.DataFrame, idx):
   
 def standardize(df: pd.DataFrame):
   scaler = StandardScaler()
+  # scaler = MinMaxScaler()
   for col in df.columns:
     df[col] = scaler.fit_transform(df[col].values.reshape(-1, 1)).reshape(-1)
   
@@ -65,6 +65,8 @@ def split_symbol(group):
 
 def split():
   data = pd.read_csv('./ml/datasets/dataset.csv')
+  print(data.columns)
+  exit()
   X = []
   Y = []
   result = Pool(cpu_count()).map(split_symbol, [x for _, x in data.groupby('symbol')])
@@ -105,14 +107,13 @@ def run_epoch(model, train_loader, test_loader):
       loss = criterion(outputs, labels)
       loss.backward()
       optimizer.step()
-    if epoch % 10 == 0:
+    if epoch % 100 == 0:
       print(f"Epoch {epoch} Loss: {loss}")
       test_model(model, test_loader, device)
 
 def define_model(input_size):
-  hidden_size = 128 # 假设隐藏层大小为10
   # model = MultiDimLinearClassifier(input_size, hidden_size)
-  model = LSTMClassifier(input_size, hidden_size, 2, num_classes)
+  model = LSTMClassifier(input_size, hidden_size, num_classes)
   return model
 
 def train():

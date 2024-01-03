@@ -1,19 +1,25 @@
 import os
 from multiprocessing import Pool, cpu_count
 import pandas as pd
+import numpy as np
 from strats.utils import upcross, downcross
+from utils.constants import (
+  buy_rsi,
+  stoploss_rsi,
+  takeprofit_rsi
+)
 
 def label(df: pd.DataFrame):
   ret = []
   for index, row in df.iterrows():
-    if row['upcross_open_rsi']:
+    if row[f'upcross_{buy_rsi}']:
       cur = index
       label = 0
       while cur < len(df):
-        if df.iloc[cur]['downcross_takeprofit_rsi']:
+        if df.iloc[cur][f'downcross_{takeprofit_rsi}']:
           label = 1
           break
-        elif df.iloc[cur]['downcross_open_rsi']:
+        elif df.iloc[cur][f'downcross_{stoploss_rsi}']:
           label = 0
           break
         cur += 1
@@ -22,18 +28,24 @@ def label(df: pd.DataFrame):
       ret.append(-1)
   return ret
 
-def make_dataset(f):
-  df = pd.read_csv('./localdata/' + f)
-  df['symbol'] = f.split('_')[0]
-  df['upcross_open_rsi'] = upcross(df, 'rsi_14', 30)
-  df['downcross_open_rsi'] = downcross(df, 'rsi_14', 30)
-  df['downcross_takeprofit_rsi'] = downcross(df, 'rsi_14', 70)
+def modify_df(df: pd.DataFrame):
+  df[f'upcross_{buy_rsi}'] = upcross(df, 'rsi_14', buy_rsi)
+  df[f'downcross_{stoploss_rsi}'] = downcross(df, 'rsi_14', stoploss_rsi)
+  df[f'downcross_{takeprofit_rsi}'] = downcross(df, 'rsi_14', takeprofit_rsi)
   df['label'] = label(df)
   df['weekday'] = pd.to_datetime(df['open_time']).dt.weekday
   df['hour'] = pd.to_datetime(df['open_time']).dt.hour
   df['minute'] = pd.to_datetime(df['open_time']).dt.minute
   df['change'] = (df['close'] - df['open']) / df['open']
   df['rsi_change'] = (df['rsi_14'] - df['rsi_14'].shift(1)) / df['rsi_14'].shift(1)
+  df['volume_change'] = (df['volume'] - df['volume'].shift(1)) / df['volume'].shift(1)
+  df['volume_change'] = df['volume_change'].replace([np.inf, -np.inf], 0)
+  return df
+
+def make_dataset(f):
+  df = pd.read_csv('./localdata/' + f)
+  df['symbol'] = f.split('_')[0]
+  df = modify_df(df)
   return df
 
 def init_dataset():

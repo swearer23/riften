@@ -1,5 +1,6 @@
 import os
 from utils import floor_float, effective_precision
+from utils.constants import buy_rsi
 
 class Symbol:
   def __init__(self, **kwargs) -> None:
@@ -64,7 +65,6 @@ class ActiveSymbol(Symbol):
     return surge_factor
   
   def get_last_upcross_buy_rsi(self):
-    buy_rsi = os.environ.get('OPEN_TRADE_UPCROSS_RSI')
     row = self.raw_df.iloc[-1]
     sub_df = self.raw_df[self.raw_df[f'upcross_{buy_rsi}'] == True]
     sub_df = sub_df[sub_df['open_time'] < row['open_time']]

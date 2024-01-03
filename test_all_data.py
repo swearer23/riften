@@ -1,17 +1,15 @@
-from utils import load_config
-load_config()
-
 import os
 from multiprocessing import Pool, cpu_count
 from strats.rsi import rsi_pair
 import pandas as pd
 from common import get_all_symbols
+from utils.constants import (
+  buy_rsi, stoploss_rsi
+)
 
 def test_symbol_interval(args):
   symbol, interval, close_rsi = args
   path = f'./localdata/{symbol}_{interval}_test.csv'
-  buy_rsi = int(os.environ['OPEN_TRADE_UPCROSS_RSI'])
-  stoploss_rsi = int(os.environ['STOP_LOSS_DOWNCROSS_RSI'])
 
   if not os.path.exists(path):
     return None, None

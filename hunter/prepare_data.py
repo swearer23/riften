@@ -5,10 +5,11 @@ from datasource.update_local_data import (
 )
 from strats.utils import upcross, downcross
 from hunter.models.Symbol import ActiveSymbol
-
-buy_rsi = int(os.environ.get('OPEN_TRADE_UPCROSS_RSI'))
-stoploss_rsi = int(os.environ.get('STOP_LOSS_DOWNCROSS_RSI'))
-takeprofit_rsi = int(os.environ.get('TAKE_PROFIT_DOWNCROSS_RSI'))
+from utils.constants import (
+  buy_rsi,
+  stoploss_rsi,
+  takeprofit_rsi
+)
 
 def process_df(df):
   df[f'upcross_{buy_rsi}'] = upcross(df, 'rsi_14', buy_rsi)

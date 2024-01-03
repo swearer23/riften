@@ -1,7 +1,24 @@
+import torch
+import numpy as np
 import pandas as pd
 from trading.trade import Trade
 from trading.holdings import Holdings
-from hunter.prepare_data import process_df
+from ml.train import standardize
+from ml.LSTMModel import LSTMClassifier
+from ml.dataset import modify_df
+from ml.constants import (
+  lookback,
+  num_classes,
+  cols,
+  hidden_size
+)
+
+def load_model(device):
+  model = LSTMClassifier(len(cols) - 1, hidden_size, num_classes)
+  model.load_state_dict(torch.load('./ml/models/model.pth'))
+  model.to(device)
+  model.eval()
+  return model
 
 def trace_back(df, index):
   upbars = []
@@ -36,10 +53,12 @@ def last_rsi_below(df, buy_rsi, row):
   ).total_seconds() / 60 if len(sub_df) > 0 else None
 
 def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  model = load_model(device)
   df = pd.read_csv(path)
   df['open_time'] = pd.to_datetime(df['open_time']) + pd.to_timedelta(8, unit='h')
   df = df.drop_duplicates(subset=['open_time'], keep='last')
-  df = process_df(df)
+  df = modify_df(df)
 
   df = df.sort_values(by='open_time')
   df = df.reset_index()
@@ -56,17 +75,30 @@ def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
         #   continue
         # if last_rsi_below_at and last_rsi_below_at <= 30:
         #   continue
-        holdings.append(Trade(
-          row['open'],
-          row['close'],
-          row['open_time'],
-          taker_buy_perc,
-          surge_factor=surge_factor,
-          buy_rsi=row['rsi_14'],
-          raw_df=df,
-          row=row,
-          assigned_buy_rsi=buy_rsi
-        ))
+        columns = [col for col in cols if col != 'label']
+        input = df[columns].iloc[index - lookback:index]
+        input = input.dropna()
+        if len(input) < lookback:
+          continue
+        input = standardize(input)
+        input = torch.tensor(np.array([input.values]))
+        output = model(input.float().to(device))
+        probabilities = torch.sigmoid(output)
+        prob = probabilities[0][1].item()
+        predicted = output.argmax(dim=1)[0]
+        if predicted > 0:
+        # if prob > 0.8:
+          holdings.append(Trade(
+            row['open'],
+            row['close'],
+            row['open_time'],
+            taker_buy_perc,
+            surge_factor=surge_factor,
+            buy_rsi=row['rsi_14'],
+            raw_df=df,
+            row=row,
+            assigned_buy_rsi=buy_rsi
+          ))
     
     # if last_order and last_order.is_active() and last_order.trade_lasting(row) > 60:
     #   last_order.close(row['close'], row['open_time'], 'trade_lasting')
