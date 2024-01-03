@@ -130,6 +130,8 @@ celerybeat.pid
 .trades.json
 .holdings.json
 logs/*.csv
+ml/datasets/
+ml/models/
 .venv
 env/
 venv/
