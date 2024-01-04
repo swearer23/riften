@@ -1,10 +1,12 @@
 import torch
 import numpy as np
 import pandas as pd
+import lightgbm as lgb
 from trading.trade import Trade
 from trading.holdings import Holdings
 from ml.train import standardize
 from ml.LSTMModel import LSTMClassifier
+from ml.lgb import reshape_row
 from ml.dataset import modify_df
 from ml.constants import (
   lookback,
@@ -55,6 +57,7 @@ def last_rsi_below(df, buy_rsi, row):
 def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   model = load_model(device)
+  # lgb_model = lgb.Booster(model_file='./ml/models/lgb.model')
   df = pd.read_csv(path)
   df['open_time'] = pd.to_datetime(df['open_time']) + pd.to_timedelta(8, unit='h')
   df = df.drop_duplicates(subset=['open_time'], keep='last')
@@ -68,13 +71,16 @@ def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
     last_order = holdings.last()
     if row[f'upcross_{buy_rsi}']:
       if holdings.is_empty():
-        surge_factor = trace_back(df, index)
-        last_rsi_below_at = last_rsi_below(df, buy_rsi, row)
-        taker_buy_perc = row['taker_buy_base_asset_volume'] / row['volume']
+        # surge_factor = trace_back(df, index)
+        # last_rsi_below_at = last_rsi_below(df, buy_rsi, row)
+        # taker_buy_perc = row['taker_buy_base_asset_volume'] / row['volume']
         # if surge_factor < 2 or surge_factor > 10:
         #   continue
         # if last_rsi_below_at and last_rsi_below_at <= 30:
         #   continue
+        '''
+          lstm infer
+        '''
         columns = [col for col in cols if col != 'label']
         input = df[columns].iloc[index - lookback:index]
         input = input.dropna()
@@ -86,14 +92,21 @@ def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
         probabilities = torch.sigmoid(output)
         prob = probabilities[0][1].item()
         predicted = output.argmax(dim=1)[0]
+        '''
+          lightgbm infer
+        '''
+        # input = reshape_row(df, index)
+        # if input is None:
+        #   continue
+        # prob = lgb_model.predict([input])[0]
+
         if predicted > 0:
-        # if prob > 0.8:
+        # if prob > 0.7:
+          print(prob)
           holdings.append(Trade(
             row['open'],
             row['close'],
             row['open_time'],
-            taker_buy_perc,
-            surge_factor=surge_factor,
             buy_rsi=row['rsi_14'],
             raw_df=df,
             row=row,

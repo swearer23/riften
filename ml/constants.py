@@ -1,7 +1,7 @@
 batch_size = 2048
 learning_rate = 1e-4
 num_classes = 2
-num_epochs = 1000
+num_epochs = 2000
 lookback = 30
 cols = [
   'rsi_14', 'change', 'rsi_change',

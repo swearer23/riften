@@ -1,7 +1,7 @@
 from datetime import datetime
 
 class Trade:
-  def __init__(self, stoploss_price, price, dt, taker_buy_perc, trade_cash=10000, **kwargs) -> None:
+  def __init__(self, stoploss_price, price, dt, trade_cash=10000, **kwargs) -> None:
     self.stoploss_price = stoploss_price
     self.buy_price = price
     self.buy_dt = dt
@@ -13,7 +13,6 @@ class Trade:
     self.trade_cash = trade_cash
     self.close_type = None
     self.surge_factor = kwargs.get('surge_factor')
-    self.taker_buy_perc = taker_buy_perc
     self.buy_rsi = kwargs.get('buy_rsi')
     self.df = kwargs.get('raw_df')
     self.assigned_buy_rsi = kwargs.get('assigned_buy_rsi')
@@ -74,7 +73,6 @@ class Trade:
       'price_diff': self.price_diff,
       'close_type': self.close_type,
       'surge_factor': self.surge_factor,
-      'taker_buy_per_trade': self.taker_buy_perc,
       'buy_rsi': self.buy_rsi,
       'duration': duration,
       'holding_length': holding_length,
