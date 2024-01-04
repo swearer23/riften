@@ -2,9 +2,10 @@ import lightgbm as lgb
 from lightgbm import LGBMClassifier
 from sklearn.model_selection import train_test_split
 from ml.train import split
-from ml.constants import cols, lookback
+from ml.constants import cols, HyperParams
 
 def reshape_row(df, index):
+  lookback = HyperParams.load('lookback')
   columns = [col for col in cols if col != 'label']
   input = df[columns].iloc[index - lookback:index]
   input = input.dropna()

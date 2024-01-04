@@ -8,16 +8,13 @@ from ml.train import standardize
 from ml.LSTMModel import LSTMClassifier
 from ml.lgb import reshape_row
 from ml.dataset import modify_df
-from ml.constants import (
-  lookback,
-  num_classes,
-  cols,
-  hidden_size
-)
+from ml.constants import HyperParams, cols, num_classes
 
-def load_model(device):
+def load_model(device, model_path=None):
+  hidden_size = HyperParams.load('hidden_size')
+  model_path = './ml/models/model.pth' if model_path is None else model_path
   model = LSTMClassifier(len(cols) - 1, hidden_size, num_classes)
-  model.load_state_dict(torch.load('./ml/models/model.pth'))
+  model.load_state_dict(torch.load(model_path))
   model.to(device)
   model.eval()
   return model
@@ -54,9 +51,10 @@ def last_rsi_below(df, buy_rsi, row):
     row['open_time'] - sub_df['open_time'].iloc[-1]
   ).total_seconds() / 60 if len(sub_df) > 0 else None
 
-def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
+def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi, model):
+  lookback = HyperParams.load('lookback')
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-  model = load_model(device)
+  model = load_model(device, model)
   # lgb_model = lgb.Booster(model_file='./ml/models/lgb.model')
   df = pd.read_csv(path)
   df['open_time'] = pd.to_datetime(df['open_time']) + pd.to_timedelta(8, unit='h')
@@ -102,7 +100,6 @@ def rsi_pair(path, buy_rsi, stoploss_rsi, takeprofit_rsi):
 
         if predicted > 0:
         # if prob > 0.7:
-          print(prob)
           holdings.append(Trade(
             row['open'],
             row['close'],

@@ -129,6 +129,7 @@ celerybeat.pid
 .env.production
 .trades.json
 .holdings.json
+.hyperparams.json
 logs/*.csv
 ml/datasets/
 ml/models/

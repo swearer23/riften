@@ -1,4 +1,5 @@
 import os
+import torch
 from multiprocessing import Pool, cpu_count
 from strats.rsi import rsi_pair
 import pandas as pd
@@ -8,12 +9,18 @@ from utils.constants import (
 )
 
 def test_symbol_interval(args):
-  symbol, interval, close_rsi = args
+  symbol, interval, close_rsi, model = args
   path = f'./localdata/{symbol}_{interval}_test.csv'
 
   if not os.path.exists(path):
     return None, None
-  result_df = rsi_pair(path, buy_rsi, stoploss_rsi=stoploss_rsi, takeprofit_rsi=close_rsi)
+  result_df = rsi_pair(
+    path,
+    buy_rsi,
+    stoploss_rsi=stoploss_rsi,
+    takeprofit_rsi=close_rsi,
+    model=model
+  )
   if len(result_df) == 0:
     return None, None
   result_df['buy_dt'] = pd.to_datetime(result_df['buy_dt'])
@@ -43,24 +50,47 @@ def test_symbol_interval(args):
     'close_rsi': close_rsi
   }, result_df
 
-symbols = get_all_symbols()
+def run(model=None):
+  symbols = get_all_symbols()
 
-with Pool(cpu_count()) as p:
-  result = p.map(
-    test_symbol_interval,
-    [
-      (symbol, interval, close_rsi)
-      for symbol in symbols
-      for interval in ['5m'] #intervals
-      for close_rsi in [70] #range(40, 90, 5)
-    ]
-  )
+  with Pool(cpu_count()) as p:
+    result = p.map(
+      test_symbol_interval,
+      [
+        (symbol, interval, close_rsi, model)
+        for symbol in symbols
+        for interval in ['5m'] #intervals
+        for close_rsi in [70] #range(40, 90, 5)
+      ]
+    )
+    p.close()
+    p.join()
 
-result = [x for x in result if x[0] is not None]
-df = pd.DataFrame([x[0] for x in result])
-print('total profit', df['sum_profit'].sum())
-print('win rate', df['wins'].sum() / (df['loses'].sum() + df['wins'].sum()))
-print('trades', df['wins'].sum() + df['loses'].sum())
-print('profit per trade', df['sum_profit'].sum() / (df['wins'].sum() + df['loses'].sum()))
-df.to_csv('./results/result.csv', index=False)
-pd.concat([x[1] for x in result]).to_csv('./results/result_detail.csv', index=False)
+  result = [x for x in result if x[0] is not None]
+  df = pd.DataFrame([x[0] for x in result])
+  if df.empty:
+    return {
+      'profit': 0,
+      'win_rate': 0,
+      'trades': 0,
+      'profit_per_trade': 0
+    }
+  total_profit = df['sum_profit'].sum()
+  win_rate = df['wins'].sum() / (df['loses'].sum() + df['wins'].sum())
+  trades = df['wins'].sum() + df['loses'].sum()
+  profit_per_trade = df['sum_profit'].sum() / (df['wins'].sum() + df['loses'].sum())
+  print('total profit', total_profit)
+  print('win rate', win_rate)
+  print('trades', trades)
+  print('profit per trade', profit_per_trade)
+  df.to_csv('./results/result.csv', index=False)
+  pd.concat([x[1] for x in result]).to_csv('./results/result_detail.csv', index=False)
+  return {
+    'profit': total_profit,
+    'win_rate': win_rate,
+    'trades': trades,
+    'profit_per_trade': profit_per_trade
+  }
+
+if __name__ == '__main__':
+  run()
