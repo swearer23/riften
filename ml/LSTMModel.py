@@ -1,14 +1,13 @@
 import torch
 from torch import nn
-
-num_layers = 4
+from ml.constants import num_lstm_layers
 
 class LSTMClassifier(nn.Module):
   def __init__(self, input_size, hidden_size, num_classes):
     super(LSTMClassifier, self).__init__()
     self.hidden_size = hidden_size
-    self.num_layers = num_layers
-    self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+    self.num_layers = num_lstm_layers
+    self.lstm = nn.LSTM(input_size, hidden_size, num_lstm_layers, batch_first=True)
     self.fc = nn.Linear(hidden_size, num_classes)
   
   def forward(self, x):

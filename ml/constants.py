@@ -1,8 +1,9 @@
 batch_size = 2048
 learning_rate = 1e-4
 num_classes = 2
-num_epochs = 20000
-lookback = 30
+num_lstm_layers = 4
+num_epochs = 2000
+lookback = 12
 cols = [
   'rsi_14', 'change', 'rsi_change',
   'open', 'high', 'low', 'close',
