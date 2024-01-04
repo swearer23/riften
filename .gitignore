@@ -131,8 +131,9 @@ celerybeat.pid
 .holdings.json
 .hyperparams.json
 logs/*.csv
-ml/datasets/
-ml/models/
+ml/datasets/*.csv
+ml/models/*.pth
+ml/models/*.model
 .venv
 env/
 venv/
