@@ -1,10 +1,11 @@
 batch_size = 2048
 learning_rate = 1e-4
 num_classes = 2
-num_epochs = 2000
+num_epochs = 20000
 lookback = 30
 cols = [
   'rsi_14', 'change', 'rsi_change',
+  'open', 'high', 'low', 'close',
   'volume_change', 'volume',
   'number_of_trades', 'taker_percents',
   'weekday', 'hour', 'minute',

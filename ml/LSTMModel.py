@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-num_layers = 2
+num_layers = 4
 
 class LSTMClassifier(nn.Module):
   def __init__(self, input_size, hidden_size, num_classes):
