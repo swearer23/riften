@@ -15,7 +15,7 @@ cols = [
   'label'
 ]
 hidden_size = 128
-epoch_step = 500
+epoch_step = 1000
 min_loss_limit = 1e-8
 
 class HyperParams:
