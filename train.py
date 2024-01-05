@@ -7,8 +7,9 @@ from ml.lgb import train as lgb_train
 from ml.constants import HyperParams
 from test_all_data import run
 
+optimize_file_apth = './results/optimization.csv'
+
 def run_test(model, epoch, loss):
-  filepath = './results/optimization.csv'
   result = run(model)
   result['epoch'] = epoch
   result['loss'] = loss
@@ -17,12 +18,16 @@ def run_test(model, epoch, loss):
     **HyperParams.json()
   }
   df = pd.DataFrame([result])
-  if os.path.exists(filepath):
-    df.to_csv(filepath, mode='a', header=False, index=False)
+  print(df)
+  if os.path.exists(optimize_file_apth):
+    df.to_csv(optimize_file_apth, mode='a', header=False, index=False)
   else:
-    df.to_csv(filepath, index=False)
+    df.to_csv(optimize_file_apth, index=False)
 
 def optimize():
+  if os.path.exists(optimize_file_apth):
+    os.remove(optimize_file_apth)
+  HyperParams.init()
   combinations = [
     (lookback, num_lstm_layers, hidden_size)
     for lookback in [12, 30, 60]
@@ -37,10 +42,6 @@ def optimize():
     is_checkpoint = True
     model_path = None
     while is_checkpoint:
-      print(pd.DataFrame([{
-        'epoch': epoch,
-        **HyperParams.json(),
-      }]))
       q = Queue()
       p = Process(target=train, args=(q, model_path))
       p.start()

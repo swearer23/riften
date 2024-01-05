@@ -2,7 +2,7 @@ import os
 from multiprocessing import Pool, cpu_count
 import pandas as pd
 import torch
-from torch import nn
+from torch import nn, Tensor
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
@@ -89,7 +89,7 @@ def test_model(model, test_loader, device):
   accuracy = correct / total
   print(f"Test Accuracy: {accuracy}")
 
-def run_epoch(model, train_loader, test_loader):
+def run_epoch(model, train_loader, test_loader) -> Tensor:
   criterion = nn.CrossEntropyLoss()
   optimizer = torch.optim.Adam(model.parameters(), lr=HyperParams.load('learning_rate'))
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -145,6 +145,7 @@ def train(queue=None, checkpoint_path=None):
     model = define_model(X_train.shape[2])
   # 训练模型
   loss = run_epoch(model, train_loader, test_loader)
+  loss = loss.item()
 
   ts = pd.Timestamp.now().timestamp()
   path = f'./ml/models/checkpoint_{ts}.pth'

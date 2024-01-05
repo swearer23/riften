@@ -22,6 +22,11 @@ class HyperParams:
   filepath = './.hyperparams.json'
 
   @staticmethod
+  def init():
+    with open(HyperParams.filepath, 'w') as f:
+      json.dump(HyperParams.default(), f)
+
+  @staticmethod
   def load(key):
     with open(HyperParams.filepath, 'r') as f:
       data = json.load(f)
