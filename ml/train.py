@@ -121,11 +121,10 @@ def define_model(input_size):
   return model
 
 def load_checkpoint(num_features, checkpoint_path=None):
-  path = './ml/models/checkpoint.pth' if checkpoint_path is None else checkpoint_path
-  if not os.path.exists(path):
+  if checkpoint_path is None or not os.path.exists(checkpoint_path):
     return None
   model = define_model(num_features)
-  model.load_state_dict(torch.load(path))
+  model.load_state_dict(torch.load(checkpoint_path))
   return model
 
 def train(queue=None, checkpoint_path=None):

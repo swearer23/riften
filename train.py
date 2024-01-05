@@ -38,22 +38,21 @@ def optimize(interval, breakpoint=None):
     for num_lstm_layers in [2, 4, 6]
     for hidden_size in [64, 128, 256]
   ]
+  epoch = 0
+  model_path = None
   if breakpoint is not None:
     combinations = combinations[combinations.index((
       breakpoint['lookback'],
       breakpoint['num_lstm_layers'],
       breakpoint['hidden_size']
     )):]
+    epoch = breakpoint['epoch']
+    model_path = breakpoint['path']
   for lookback, num_lstm_layers, hidden_size in combinations:
     HyperParams.set('lookback', lookback)
     HyperParams.set('num_lstm_layers', num_lstm_layers)
     HyperParams.set('hidden_size', hidden_size)
-    epoch = 0
     is_checkpoint = True
-    model_path = None
-    if breakpoint:
-      epoch = breakpoint['epoch']
-      model_path = breakpoint['path']
     while is_checkpoint:
       q = Queue()
       p = Process(target=train, args=(q, model_path))
@@ -75,6 +74,8 @@ def optimize(interval, breakpoint=None):
           'epoch': epoch,
           'path': model_path
         })
+    epoch = 0
+    model_path = None
   print('===============done================')
   print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
