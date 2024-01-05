@@ -159,6 +159,10 @@ def train(queue=None, checkpoint_path=None):
     return True, path, loss
   else:
     # 保存模型
+    lookback = HyperParams.load('lookback')
+    num_lstm_layers = HyperParams.load('num_lstm_layers')
+    hidden_size = HyperParams.load('hidden_size')
+    path = f'./ml/models/model_{lookback}_{num_lstm_layers}_{hidden_size}.pth'
     torch.save(model.state_dict(), path)
     torch.cuda.empty_cache()
     if queue is not None:
