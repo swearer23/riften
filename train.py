@@ -14,6 +14,7 @@ def run_test(model, epoch, loss):
   result = run(model)
   result['epoch'] = epoch
   result['loss'] = loss
+  result['model'] = model
   result = {
     **result,
     **HyperParams.json()
