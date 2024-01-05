@@ -1,5 +1,6 @@
 import os
 from multiprocessing import Pool, cpu_count
+from functools import lru_cache
 import pandas as pd
 import torch
 from torch import nn, Tensor
@@ -57,6 +58,7 @@ def split_symbol(group):
       X.append(traceback.values)
   return X, Y
 
+@lru_cache(maxsize=1)
 def split():
   data = pd.read_csv('./ml/datasets/dataset.csv')
   # print(data.columns)

@@ -1,6 +1,6 @@
 import json
 
-batch_size = 2048
+batch_size = 1024
 learning_rate = 1e-4
 num_classes = 2
 num_lstm_layers = 4

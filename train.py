@@ -1,5 +1,6 @@
 import sys, os
 from multiprocessing import Process, Queue
+from datetime import datetime
 import pandas as pd
 from ml.dataset import init_dataset
 from ml.train import train
@@ -51,6 +52,8 @@ def optimize():
       p.start()
       p.join()
       epoch += HyperParams.load('epoch_step')
+  print('===============done================')
+  print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 if __name__ == '__main__':
   argv = sys.argv

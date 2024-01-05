@@ -1,5 +1,5 @@
 import os
-import json
+from functools import lru_cache
 from binance.spot import Spot
 
 def get_all_quote_assets(exchange_info=None):
@@ -9,6 +9,7 @@ def get_all_quote_assets(exchange_info=None):
   quote_assets = [item['quoteAsset'] for item in exchange_info['symbols']]
   return quote_assets
 
+@lru_cache(maxsize=1024)
 def get_all_symbols(quote_asset='USDT'):
   permissions = os.environ.get('TRADE_PERMISSION').split(',')
   client = Spot()
