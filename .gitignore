@@ -130,6 +130,7 @@ celerybeat.pid
 .trades.json
 .holdings.json
 .hyperparams.json
+.breakpoint
 logs/*.csv
 ml/datasets/*.csv
 ml/models/*.pth

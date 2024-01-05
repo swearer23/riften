@@ -1,4 +1,5 @@
-import sys, os
+import sys, os, time
+import json
 from multiprocessing import Process, Queue
 from datetime import datetime
 import pandas as pd
@@ -9,6 +10,7 @@ from ml.constants import HyperParams
 from test_all_data import run
 
 optimize_file_apth = './results/optimization.csv'
+break_point_file_path = './.breakpoint'
 
 def run_test(model, epoch, loss):
   result = run(model)
@@ -26,7 +28,7 @@ def run_test(model, epoch, loss):
   else:
     df.to_csv(optimize_file_apth, index=False)
 
-def optimize():
+def optimize(interval, breakpoint=None):
   if os.path.exists(optimize_file_apth):
     os.remove(optimize_file_apth)
   HyperParams.init()
@@ -36,6 +38,12 @@ def optimize():
     for num_lstm_layers in [2, 4, 6]
     for hidden_size in [64, 128, 256]
   ]
+  if breakpoint is not None:
+    combinations = combinations[combinations.index((
+      breakpoint['lookback'],
+      breakpoint['num_lstm_layers'],
+      breakpoint['hidden_size']
+    )):]
   for lookback, num_lstm_layers, hidden_size in combinations:
     HyperParams.set('lookback', lookback)
     HyperParams.set('num_lstm_layers', num_lstm_layers)
@@ -43,6 +51,9 @@ def optimize():
     epoch = 0
     is_checkpoint = True
     model_path = None
+    if breakpoint:
+      epoch = breakpoint['epoch']
+      model_path = breakpoint['path']
     while is_checkpoint:
       q = Queue()
       p = Process(target=train, args=(q, model_path))
@@ -53,8 +64,34 @@ def optimize():
       p.start()
       p.join()
       epoch += HyperParams.load('epoch_step')
+      if interval is not None:
+        print('===============sleep================')
+        print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        time.sleep(interval)
+        write_break_point({
+          'lookback': lookback,
+          'num_lstm_layers': num_lstm_layers,
+          'hidden_size': hidden_size,
+          'epoch': epoch,
+          'path': model_path
+        })
   print('===============done================')
   print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+def write_break_point(breakpoint):
+  with open(break_point_file_path, 'w') as f:
+    f.write(json.dumps(breakpoint, indent=2, ensure_ascii=False))
+
+def get_break_point():
+  if not os.path.exists(break_point_file_path):
+    return None
+  else:
+    with open(break_point_file_path, 'r') as f:
+      try:
+        breakpoint = json.loads(f.read())
+        return breakpoint
+      except:
+        return None
 
 if __name__ == '__main__':
   argv = sys.argv
@@ -66,4 +103,16 @@ if __name__ == '__main__':
   elif task == 'lgb':
     lgb_train()
   elif task == 'optimize':
-    optimize()
+    breakpoint = get_break_point()
+    if breakpoint:
+      print('===============breakpoint================')
+      print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+      print(breakpoint)
+      lookback = breakpoint['lookback']
+      num_lstm_layers = breakpoint['num_lstm_layers']
+      hidden_size = breakpoint['hidden_size']
+      HyperParams.set('lookback', lookback)
+      HyperParams.set('num_lstm_layers', num_lstm_layers)
+      HyperParams.set('hidden_size', hidden_size)
+    interval = int(argv[2])
+    optimize(interval, breakpoint)
