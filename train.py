@@ -29,7 +29,7 @@ def run_test(model, epoch, loss):
     df.to_csv(optimize_file_apth, index=False)
 
 def optimize(interval, breakpoint=None):
-  if os.path.exists(optimize_file_apth):
+  if breakpoint is None and os.path.exists(optimize_file_apth):
     os.remove(optimize_file_apth)
   HyperParams.init()
   combinations = [
