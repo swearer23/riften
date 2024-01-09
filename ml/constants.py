@@ -16,7 +16,7 @@ cols = [
 ]
 hidden_size = 128
 epoch_step = 1000
-min_loss_limit = 1e-7
+min_loss_limit = 1e-6
 
 class HyperParams:
   filepath = './.hyperparams.json'
