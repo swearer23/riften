@@ -76,6 +76,8 @@ def optimize(interval, breakpoint=None):
         })
     epoch = 0
     model_path = None
+    with open(break_point_file_path, 'w') as f:
+      f.write('{}')
   print('===============done================')
   print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
