@@ -34,9 +34,9 @@ def optimize(interval, breakpoint=None):
   HyperParams.init()
   combinations = [
     (lookback, num_lstm_layers, hidden_size)
-    for lookback in [12, 30, 60]
-    for num_lstm_layers in [2, 4, 6]
-    for hidden_size in [64, 128, 256]
+    for lookback in [6, 12]
+    for num_lstm_layers in [4, 6]
+    for hidden_size in [128, 256]
   ]
   epoch = 0
   model_path = None
